@@ -137,13 +137,13 @@ describe('Graph', () => {
     graph.insert({ a: 4, b: 'b' })
 
     graph.addEdge('1.00', '2.00')
-    expect((graph as any).adjacency[0][1]).toBe(1)
+    expect((graph as any).adjacency[0][1]).toBeTruthy()
     expect((graph as any).adjacency[1][0]).toBeFalsy()
-    expect((graph as any).adjacency[1][2]).toBe(0)
+    expect((graph as any).adjacency[1][2]).toBeFalsy()
 
     graph.addEdge('2.00', '1.00')
-    expect((graph as any).adjacency[0][1]).toBe(1)
-    expect((graph as any).adjacency[1][0]).toBe(1)
+    expect((graph as any).adjacency[0][1]).toBeTruthy()
+    expect((graph as any).adjacency[1][0]).toBeTruthy()
     expect((graph as any).adjacency[1][2]).toBeFalsy()
   })
 

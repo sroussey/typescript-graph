@@ -3,13 +3,8 @@ import { NodeAlreadyExistsError, NodeDoesntExistError } from './errors'
 /**
  * This is the default [[Graph.constructor | `nodeIdentity`]] function it is simply imported from [object-hash](https://www.npmjs.com/package/object-hash)
  */
-const hash = require('object-hash')
 
-/**
- * @internal
- * This type is simply an indicator of whether an edge exists in the adjacency matrix.
- */
-export type Edge = 1 | 0
+var hash = require('object-hash')
 
 /**
  * # Graph
@@ -97,12 +92,12 @@ export type Edge = 1 | 0
  *
  * @typeParam T  `T` is the node type of the graph. Nodes can be anything in all the included examples they are simple objects.
  */
-export default class Graph<T> {
-  protected nodes: Map<string, T>
-  protected adjacency: Array<Array<Edge>>
-  protected nodeIdentity: (t: T) => string
+export class Graph<T, E = true> {
+  protected nodes: Map<unknown, T>
+  protected adjacency: Array<Array<E | null>>
+  protected nodeIdentity: (t: T) => unknown
 
-  constructor(nodeIdentity: (node: T) => string = node => hash(node)) {
+  constructor(nodeIdentity: (node: T) => unknown = node => hash(node)) {
     this.nodes = new Map()
     this.adjacency = []
     this.nodeIdentity = nodeIdentity
@@ -114,7 +109,7 @@ export default class Graph<T> {
    * @param node The node to be added
    * @returns A `string` that is the identity of the newly inserted node. This is created by applying the [[constructor | `nodeIdentity`]].
    */
-  insert(node: T): string {
+  insert(node: T): unknown {
     const isOverwrite = this.nodes.has(this.nodeIdentity(node))
 
     if (isOverwrite) {
@@ -126,8 +121,8 @@ export default class Graph<T> {
     }
 
     this.nodes.set(this.nodeIdentity(node), node)
-    this.adjacency.map(adj => adj.push(0))
-    this.adjacency.push(new Array(this.adjacency.length + 1).fill(0))
+    this.adjacency.map(adj => adj.push(null))
+    this.adjacency.push(new Array(this.adjacency.length + 1).fill(null))
 
     return this.nodeIdentity(node)
   }
@@ -157,14 +152,14 @@ export default class Graph<T> {
    * @param node The node to insert or update
    * @returns The identity string of the node inserted or updated.
    */
-  upsert(node: T): string {
+  upsert(node: T): unknown {
     const isOverwrite = this.nodes.has(this.nodeIdentity(node))
 
     this.nodes.set(this.nodeIdentity(node), node)
 
     if (!isOverwrite) {
-      this.adjacency.map(adj => adj.push(0))
-      this.adjacency.push(new Array(this.adjacency.length + 1))
+      this.adjacency.map(adj => adj.push(null))
+      this.adjacency.push(new Array(this.adjacency.length + 1).fill(null))
     }
 
     return this.nodeIdentity(node)
@@ -177,7 +172,7 @@ export default class Graph<T> {
    * @param node1Identity The first node to connect (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `from` node.)
    * @param node2Identity The second node to connect (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `to` node)
    */
-  addEdge(node1Identity: string, node2Identity: string) {
+  addEdge(node1Identity: unknown, node2Identity: unknown, edge?: E) {
     const node1Exists = this.nodes.has(node1Identity)
     const node2Exists = this.nodes.has(node2Identity)
 
@@ -192,7 +187,7 @@ export default class Graph<T> {
     const node1Index = Array.from(this.nodes.keys()).indexOf(node1Identity)
     const node2Index = Array.from(this.nodes.keys()).indexOf(node2Identity)
 
-    this.adjacency[node1Index][node2Index] = 1
+    this.adjacency[node1Index][node2Index] = edge ?? ((true as unknown) as E)
   }
 
   /**
@@ -215,7 +210,56 @@ export default class Graph<T> {
    *
    * @param compareFunc An optional function that indicates the sort order of the returned array
    */
-  getNode(nodeIdentity: string): T | undefined {
+  getNode(nodeIdentity: unknown): T | undefined {
     return this.nodes.get(nodeIdentity)
+  }
+
+  /**
+   * Deletes an edge between two nodes in the graph.
+   * Throws a [[`NodeDoesNotExistsError`]] if either of the nodes do not exist.
+   *
+   * @param node1Identity The identity of the first node (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `from` node.)
+   * @param node2Identity The identity of the second node (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `to` node)
+   */
+  deleteEdge(node1Identity: unknown, node2Identity: unknown) {
+    const node1Exists = this.nodes.has(node1Identity)
+    const node2Exists = this.nodes.has(node2Identity)
+
+    if (!node1Exists) {
+      throw new NodeDoesntExistError(node1Identity)
+    }
+
+    if (!node2Exists) {
+      throw new NodeDoesntExistError(node2Identity)
+    }
+
+    const node1Index = Array.from(this.nodes.keys()).indexOf(node1Identity)
+    const node2Index = Array.from(this.nodes.keys()).indexOf(node2Identity)
+
+    this.adjacency[node1Index][node2Index] = null
+  }
+
+  /**
+   * Deletes a node from the graph, along with any edges associated with it.
+   * Throws a [[`NodeDoesNotExistsError`]] if the node does not exist.
+   *
+   * @param nodeIdentity The identity of the node to be deleted.
+   */
+  deleteNode(nodeIdentity: unknown) {
+    if (!this.nodes.has(nodeIdentity)) {
+      throw new NodeDoesntExistError(nodeIdentity)
+    }
+
+    // Remove the node from the nodes map
+    this.nodes.delete(nodeIdentity)
+
+    // Find the index of the node in the adjacency matrix
+    const nodeIndex = Array.from(this.nodes.keys()).indexOf(nodeIdentity)
+
+    // Remove the corresponding row from the adjacency matrix
+    this.adjacency.splice(nodeIndex, 1)
+
+    // Remove the corresponding column from the adjacency matrix
+    this.adjacency.forEach(row => row.splice(nodeIndex, 1))
   }
 }

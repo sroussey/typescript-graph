@@ -1,4 +1,4 @@
-import DirectedGraph from './directedGraph'
+import { DirectedGraph } from './directedGraph'
 import { CycleError } from './errors'
 
 /**
@@ -8,7 +8,7 @@ import { CycleError } from './errors'
  *
  * @typeParam T `T` is the node type of the graph. Nodes can be anything in all the included examples they are simple objects.
  */
-export default class DirectedAcyclicGraph<T> extends DirectedGraph<T> {
+export class DirectedAcyclicGraph<T, E = true> extends DirectedGraph<T, E> {
   private _topologicallySortedNodes?: Array<T>
   protected hasCycle = false
 
@@ -17,11 +17,11 @@ export default class DirectedAcyclicGraph<T> extends DirectedGraph<T> {
    * Throws a {@linkcode CycleError} if the graph attempting to be converted contains a cycle.
    * @param graph The source directed graph to convert into a DAG
    */
-  static fromDirectedGraph<T>(graph: DirectedGraph<T>): DirectedAcyclicGraph<T> {
+  static fromDirectedGraph<T, E>(graph: DirectedGraph<T, E>): DirectedAcyclicGraph<T, E> {
     if (!graph.isAcyclic()) {
       throw new CycleError("Can't convert that graph to a DAG because it contains a cycle")
     }
-    const toRet = new DirectedAcyclicGraph<T>()
+    const toRet = new DirectedAcyclicGraph<T, E>()
 
     toRet.nodes = (graph as any).nodes
     toRet.adjacency = (graph as any).adjacency
@@ -37,7 +37,7 @@ export default class DirectedAcyclicGraph<T> extends DirectedGraph<T> {
    * @param fromNodeIdentity The identity string of the node the edge should run from.
    * @param toNodeIdentity The identity string of the node the edge should run to.
    */
-  addEdge(fromNodeIdentity: string, toNodeIdentity: string) {
+  addEdge(fromNodeIdentity: unknown, toNodeIdentity: unknown, edge?: E) {
     if (this.wouldAddingEdgeCreateCycle(fromNodeIdentity, toNodeIdentity)) {
       throw new CycleError(
         `Can't add edge from ${fromNodeIdentity} to ${toNodeIdentity} it would create a cycle`
@@ -46,7 +46,7 @@ export default class DirectedAcyclicGraph<T> extends DirectedGraph<T> {
 
     // Invalidate cache of toposorted nodes
     this._topologicallySortedNodes = undefined
-    super.addEdge(fromNodeIdentity, toNodeIdentity, true)
+    super.addEdge(fromNodeIdentity, toNodeIdentity, edge, true)
   }
 
   /**
@@ -55,7 +55,7 @@ export default class DirectedAcyclicGraph<T> extends DirectedGraph<T> {
    *
    * @param node The node to insert
    */
-  insert(node: T): string {
+  insert(node: T): unknown {
     if (this._topologicallySortedNodes) {
       this._topologicallySortedNodes = [node, ...this._topologicallySortedNodes]
     }
@@ -99,8 +99,8 @@ export default class DirectedAcyclicGraph<T> extends DirectedGraph<T> {
       toReturn.push(curNode)
 
       adjCopy[nodeIndices.indexOf(n[0])]?.forEach((edge, index) => {
-        if (edge > 0) {
-          adjCopy[nodeIndices.indexOf(n[0])][index] = 0
+        if (edge) {
+          adjCopy[nodeIndices.indexOf(n[0])][index] = null
           const target = nodeInDegrees.get(nodeIndices[index]) as number
           nodeInDegrees.set(nodeIndices[index], target - 1)
 
@@ -126,7 +126,34 @@ export default class DirectedAcyclicGraph<T> extends DirectedGraph<T> {
    *
    * @param startNodeIdentity The string identity of the node from which the subgraph search should start.
    */
-  getSubGraphStartingFrom(startNodeIdentity: string): DirectedAcyclicGraph<T> {
+  getSubGraphStartingFrom(startNodeIdentity: unknown): DirectedAcyclicGraph<T, E> {
     return DirectedAcyclicGraph.fromDirectedGraph(super.getSubGraphStartingFrom(startNodeIdentity))
+  }
+
+  /**
+   * Deletes an edge between two nodes in the graph.
+   * Throws a [[`NodeDoesNotExistsError`]] if either of the nodes do not exist.
+   *
+   * @param fromNodeIdentity The identity of the from node
+   * @param toNodeIdentity The identity of the to node
+   */
+  deleteEdge(fromNodeIdentity: unknown, toNodeIdentity: unknown) {
+    super.deleteEdge(fromNodeIdentity, toNodeIdentity)
+
+    // Invalidate the topologically sorted nodes cache
+    this._topologicallySortedNodes = undefined
+  }
+
+  /**
+   * Deletes a node from the graph, along with any edges associated with it.
+   * Throws a [[`NodeDoesNotExistsError`]] if the node does not exist.
+   *
+   * @param nodeIdentity The identity of the node to be deleted.
+   */
+  deleteNode(nodeIdentity: unknown) {
+    super.deleteNode(nodeIdentity)
+
+    // Invalidate the topologically sorted nodes cache
+    this._topologicallySortedNodes = undefined
   }
 }

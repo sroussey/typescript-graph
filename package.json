@@ -11,6 +11,9 @@
     "dist"
   ],
   "author": "Max Walker <maxwell.a.walker@gmail.com>",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/SegFaultx64/typescript-graph"
