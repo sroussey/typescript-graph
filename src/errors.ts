@@ -1,4 +1,3 @@
-
 /**
  * # NodeAlreadyExistsError
  *
@@ -8,19 +7,21 @@
  */
 
 export class NodeAlreadyExistsError<T> extends Error {
-  public newNode: T;
-  public oldNode: T;
-  public identity: string;
+  public newNode: T
+  public oldNode: T
+  public identity: string
 
   constructor(newNode: T, oldNode: T, identity: string) {
-    super(`${JSON.stringify(newNode)} shares an identity (${identity}) with ${JSON.stringify(oldNode)}`);
-    this.newNode = newNode;
-    this.oldNode = oldNode;
-    this.identity = identity;
-    this.name = "NodeAlreadyExistsError";
+    super(
+      `${JSON.stringify(newNode)} shares an identity (${identity}) with ${JSON.stringify(oldNode)}`
+    )
+    this.newNode = newNode
+    this.oldNode = oldNode
+    this.identity = identity
+    this.name = 'NodeAlreadyExistsError'
 
     // This bs is due to a limitation of Typescript: https://github.com/facebook/jest/issues/8279
-    Object.setPrototypeOf(this, NodeAlreadyExistsError.prototype);
+    Object.setPrototypeOf(this, NodeAlreadyExistsError.prototype)
   }
 }
 
@@ -31,31 +32,31 @@ export class NodeAlreadyExistsError<T> extends Error {
  * @category Errors
  */
 export class NodeDoesntExistError<T> extends Error {
-    public identity: string;
+  public identity: string
 
-    constructor(identity: string) {
-        super(`A node with identity ${identity} doesn't exist in the graph`);
-        this.identity = identity;
-        this.name = "NodeDoesntExistError";
+  constructor(identity: string) {
+    super(`A node with identity ${identity} doesn't exist in the graph`)
+    this.identity = identity
+    this.name = 'NodeDoesntExistError'
 
-        // This bs is due to a limitation of Typescript: https://github.com/facebook/jest/issues/8279
-        Object.setPrototypeOf(this, NodeDoesntExistError.prototype);
-    }
+    // This bs is due to a limitation of Typescript: https://github.com/facebook/jest/issues/8279
+    Object.setPrototypeOf(this, NodeDoesntExistError.prototype)
+  }
 }
 
 /**
  * # CycleError
- * 
+ *
  * This error is thrown when attempting to create or update a Directed Acyclic Graph that contains a cycle.
  *
  * @category Errors
  */
 export class CycleError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = "CycleError";
+  constructor(message: string) {
+    super(message)
+    this.name = 'CycleError'
 
-        // This bs is due to a limitation of Typescript: https://github.com/facebook/jest/issues/8279
-        Object.setPrototypeOf(this, CycleError.prototype);
-    }
+    // This bs is due to a limitation of Typescript: https://github.com/facebook/jest/issues/8279
+    Object.setPrototypeOf(this, CycleError.prototype)
+  }
 }
