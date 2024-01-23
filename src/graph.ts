@@ -97,7 +97,9 @@ export class Graph<T, E = true> {
   protected adjacency: Array<Array<E | null>>
   protected nodeIdentity: (t: T) => unknown
 
-  constructor(nodeIdentity: (node: T) => unknown = node => hash(node)) {
+  constructor(
+    nodeIdentity: (node: T) => unknown = (node) => (node !== undefined ? hash(node) : null),
+  ) {
     this.nodes = new Map()
     this.adjacency = []
     this.nodeIdentity = nodeIdentity
@@ -116,12 +118,12 @@ export class Graph<T, E = true> {
       throw new NodeAlreadyExistsError(
         node,
         this.nodes.get(this.nodeIdentity(node)),
-        this.nodeIdentity(node)
+        this.nodeIdentity(node),
       )
     }
 
     this.nodes.set(this.nodeIdentity(node), node)
-    this.adjacency.map(adj => adj.push(null))
+    this.adjacency.map((adj) => adj.push(null))
     this.adjacency.push(new Array<E | null>(this.adjacency.length + 1).fill(null))
 
     return this.nodeIdentity(node)
@@ -158,7 +160,7 @@ export class Graph<T, E = true> {
     this.nodes.set(this.nodeIdentity(node), node)
 
     if (!isOverwrite) {
-      this.adjacency.map(adj => adj.push(null))
+      this.adjacency.map((adj) => adj.push(null))
       this.adjacency.push(new Array<E | null>(this.adjacency.length + 1).fill(null))
     }
 
@@ -187,7 +189,7 @@ export class Graph<T, E = true> {
     const node1Index = Array.from(this.nodes.keys()).indexOf(node1Identity)
     const node2Index = Array.from(this.nodes.keys()).indexOf(node2Identity)
 
-    this.adjacency[node1Index][node2Index] = edge ?? ((true as unknown) as E)
+    this.adjacency[node1Index][node2Index] = edge ?? (true as unknown as E)
   }
 
   /**
@@ -258,6 +260,6 @@ export class Graph<T, E = true> {
     this.adjacency.splice(nodeIndex, 1)
 
     // Remove the corresponding column from the adjacency matrix
-    this.adjacency.forEach(row => row.splice(nodeIndex, 1))
+    this.adjacency.forEach((row) => row.splice(nodeIndex, 1))
   }
 }

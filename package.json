@@ -4,8 +4,8 @@
   "version": "0.3.0",
   "description": "",
   "keywords": [],
-  "main": "dist/typescript-graph.umd.js",
-  "module": "dist/typescript-graph.es5.js",
+  "main": "dist/cls/index.js",
+  "module": "dist/esm/index.js",
   "typings": "dist/types/index.ts",
   "files": [
     "dist"
@@ -26,11 +26,11 @@
   "scripts": {
     "lint": "npx eslint 'src/**/*.ts' 'test/**/*.ts' --fix",
     "prebuild": "rimraf dist",
-    "build": "npm run build-esm && npm run build-cjs && npm run build-docs",
+    "build": "npm run build-esm && npm run build-cjs && npm run build-types && npm run build-docs",
     "build-docs": "typedoc --out docs --theme default src",
-    "build-types": "tsc --declaration --emitDeclarationOnly",
-    "build-esm": "bun build ./src/*.ts --outdir ./dist/esm --format esm --sourcemap=external --entry-naming=\"[name].[ext]\"",
-    "build-cjs": "bun build ./src/*.ts --outdir ./dist/cls --sourcemap=external --entry-naming=\"[name].[ext]\"",
+    "build-types": "tsc --declaration --emitDeclarationOnly src/* --outDir dist/types",
+    "build-esm": "bun build ./src/*.ts --outdir ./dist/esm --format esm --sourcemap=external",
+    "build-cjs": "bun build ./src/*.ts --outdir ./dist/cls --sourcemap=external",
     "test": "bun test --coverage",
     "test:watch": "bun test --watch",
     "test:prod": "npm run lint && npm run test -- --no-cache",
