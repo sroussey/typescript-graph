@@ -1,4 +1,4 @@
-import { DirectedGraph, Graph } from '../src/'
+import { DirectedGraph } from '../src/'
 import { NodeDoesntExistError } from '../src/errors'
 
 /***
@@ -7,11 +7,13 @@ import { NodeDoesntExistError } from '../src/errors'
 
 describe('Directed Graph', () => {
   it('can be instantiated', () => {
-    expect(new DirectedGraph<{}>()).toBeInstanceOf(DirectedGraph)
+    expect(new DirectedGraph<Record<string, any>>()).toBeInstanceOf(DirectedGraph)
   })
 
   it('can calculate the indegree of a node', () => {
-    type NodeType = { name: string }
+    interface NodeType {
+      name: string
+    }
     const graph = new DirectedGraph<NodeType>((n: NodeType) => n.name)
 
     graph.insert({ name: 'A' })
@@ -34,7 +36,9 @@ describe('Directed Graph', () => {
   })
 
   it('can determine if it is acyclical', () => {
-    type NodeType = { name: string }
+    interface NodeType {
+      name: string
+    }
     const graph = new DirectedGraph<NodeType>((n: NodeType) => n.name)
 
     graph.insert({ name: 'A' })
@@ -108,7 +112,9 @@ describe('Directed Graph', () => {
   })
 
   it('can determine if adding an edge would create a cycle', () => {
-    type NodeType = { name: string }
+    interface NodeType {
+      name: string
+    }
     const graph = new DirectedGraph<NodeType>((n: NodeType) => n.name)
 
     graph.insert({ name: 'A' })
@@ -130,7 +136,9 @@ describe('Directed Graph', () => {
   })
 
   it('can determine if one node can be reached from another', () => {
-    type NodeType = { name: string }
+    interface NodeType {
+      name: string
+    }
     const graph = new DirectedGraph<NodeType>((n: NodeType) => n.name)
 
     graph.insert({ name: 'A' })
@@ -156,7 +164,9 @@ describe('Directed Graph', () => {
   })
 
   it('can return a subgraph based on walking from a start node', () => {
-    type NodeType = { name: string }
+    interface NodeType {
+      name: string
+    }
     const graph = new DirectedGraph<NodeType>((n: NodeType) => n.name)
 
     graph.insert({ name: 'A' })

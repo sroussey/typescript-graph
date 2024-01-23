@@ -11,9 +11,11 @@ export class NodeAlreadyExistsError<T> extends Error {
   public oldNode: T
   public identity: unknown
 
-  constructor(newNode: T, oldNode: T, identity: unknown) {
+  constructor (newNode: T, oldNode: T, identity: unknown) {
     super(
-      `${JSON.stringify(newNode)} shares an identity (${identity}) with ${JSON.stringify(oldNode)}`
+      `${JSON.stringify(newNode)} shares an identity (${String(identity)}) with ${JSON.stringify(
+        oldNode
+      )}`
     )
     this.newNode = newNode
     this.oldNode = oldNode
@@ -31,11 +33,11 @@ export class NodeAlreadyExistsError<T> extends Error {
  *
  * @category Errors
  */
-export class NodeDoesntExistError<T> extends Error {
+export class NodeDoesntExistError extends Error {
   public identity: unknown
 
-  constructor(identity: unknown) {
-    super(`A node with identity ${identity} doesn't exist in the graph`)
+  constructor (identity: unknown) {
+    super(`A node with identity ${String(identity)} doesn't exist in the graph`)
     this.identity = identity
     this.name = 'NodeDoesntExistError'
 
@@ -52,7 +54,7 @@ export class NodeDoesntExistError<T> extends Error {
  * @category Errors
  */
 export class CycleError extends Error {
-  constructor(message: string) {
+  constructor (message: string) {
     super(message)
     this.name = 'CycleError'
 

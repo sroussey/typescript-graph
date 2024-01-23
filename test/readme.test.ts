@@ -3,7 +3,7 @@ import { DirectedAcyclicGraph, DirectedGraph, Graph } from '../src'
 describe('The Readme', () => {
   it('runs the first example correctly', () => {
     // Identify the node type to be used with the graph
-    type NodeType = { name: string; count: number; metadata: { [string: string]: string } }
+    interface NodeType { name: string, count: number, metadata: Record<string, string> }
     // Define a custom identity function with which to identify nodes
     const graph = new Graph<NodeType>((n: NodeType) => n.name)
 
@@ -33,7 +33,7 @@ describe('The Readme', () => {
 
   it('runs the second example correctly', () => {
     // Create the graph
-    type NodeType = { name: string; count: number }
+    interface NodeType { name: string, count: number }
     const graph = new DirectedGraph<NodeType>((n: NodeType) => n.name)
 
     // Insert nodes into the graph
@@ -55,7 +55,7 @@ describe('The Readme', () => {
     const dag = DirectedAcyclicGraph.fromDirectedGraph(graph)
 
     // Try to add an edge that will cause an cycle
-    expect(() => dag.addEdge(node3, node1)).toThrow() // throws an exception
+    expect(() => { dag.addEdge(node3, node1) }).toThrow() // throws an exception
 
     // You can add the edge that would cause a cycle on the preview graph
     graph.addEdge(node3, node1)
@@ -68,7 +68,7 @@ describe('The Readme', () => {
 
   it('runs the third example correctly', () => {
     // Create the graph
-    type NodeType = { name: string }
+    interface NodeType { name: string }
     const graph = new DirectedAcyclicGraph<NodeType>((n: NodeType) => n.name)
 
     // Insert nodes into the graph

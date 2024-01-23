@@ -9,7 +9,7 @@ import { CycleError } from './errors'
  * @typeParam T `T` is the node type of the graph. Nodes can be anything in all the included examples they are simple objects.
  */
 export class DirectedAcyclicGraph<T, E = true> extends DirectedGraph<T, E> {
-  private _topologicallySortedNodes?: Array<T>
+  private _topologicallySortedNodes?: T[]
   protected hasCycle = false
 
   /**
@@ -37,10 +37,12 @@ export class DirectedAcyclicGraph<T, E = true> extends DirectedGraph<T, E> {
    * @param fromNodeIdentity The identity string of the node the edge should run from.
    * @param toNodeIdentity The identity string of the node the edge should run to.
    */
-  addEdge(fromNodeIdentity: unknown, toNodeIdentity: unknown, edge?: E) {
+  addEdge (fromNodeIdentity: unknown, toNodeIdentity: unknown, edge?: E): void {
     if (this.wouldAddingEdgeCreateCycle(fromNodeIdentity, toNodeIdentity)) {
       throw new CycleError(
-        `Can't add edge from ${fromNodeIdentity} to ${toNodeIdentity} it would create a cycle`
+        `Can't add edge from ${String(fromNodeIdentity)} to ${String(
+          toNodeIdentity
+        )} it would create a cycle`
       )
     }
 
@@ -55,8 +57,8 @@ export class DirectedAcyclicGraph<T, E = true> extends DirectedGraph<T, E> {
    *
    * @param node The node to insert
    */
-  insert(node: T): unknown {
-    if (this._topologicallySortedNodes) {
+  insert (node: T): unknown {
+    if (this._topologicallySortedNodes !== undefined) {
       this._topologicallySortedNodes = [node, ...this._topologicallySortedNodes]
     }
 
@@ -71,7 +73,7 @@ export class DirectedAcyclicGraph<T, E = true> extends DirectedGraph<T, E> {
    *
    * @returns An array of nodes sorted by the topological order.
    */
-  topologicallySortedNodes(): Array<T> {
+  topologicallySortedNodes (): T[] {
     if (this._topologicallySortedNodes !== undefined) {
       return this._topologicallySortedNodes
     }
@@ -83,7 +85,7 @@ export class DirectedAcyclicGraph<T, E = true> extends DirectedGraph<T, E> {
 
     const adjCopy = this.adjacency.map(a => [...a])
 
-    let toSearch = Array.from(nodeInDegrees).filter(pair => pair[1] === 0)
+    const toSearch = Array.from(nodeInDegrees).filter(pair => pair[1] === 0)
 
     if (toSearch.length === this.nodes.size) {
       const arrayOfNodes = Array.from(this.nodes.values())
@@ -91,21 +93,24 @@ export class DirectedAcyclicGraph<T, E = true> extends DirectedGraph<T, E> {
       return arrayOfNodes
     }
 
-    let toReturn: Array<T> = []
+    const toReturn: T[] = []
 
-    while (toSearch.length) {
+    while (toSearch.length > 0) {
       const n = toSearch.pop() as [string, number]
       const curNode = this.nodes.get(n[0]) as T
       toReturn.push(curNode)
 
       adjCopy[nodeIndices.indexOf(n[0])]?.forEach((edge, index) => {
-        if (edge) {
+        if (edge !== null) {
           adjCopy[nodeIndices.indexOf(n[0])][index] = null
-          const target = nodeInDegrees.get(nodeIndices[index]) as number
-          nodeInDegrees.set(nodeIndices[index], target - 1)
-
-          if (target - 1 === 0) {
-            toSearch.push([nodeIndices[index], 0])
+          const target = nodeInDegrees.get(nodeIndices[index])
+          if (target !== undefined) {
+            nodeInDegrees.set(nodeIndices[index], target - 1)
+            if (target - 1 === 0) {
+              toSearch.push([nodeIndices[index], 0])
+            }
+          } else {
+            throw new Error('This should never happen')
           }
         }
       })
@@ -126,7 +131,7 @@ export class DirectedAcyclicGraph<T, E = true> extends DirectedGraph<T, E> {
    *
    * @param startNodeIdentity The string identity of the node from which the subgraph search should start.
    */
-  getSubGraphStartingFrom(startNodeIdentity: unknown): DirectedAcyclicGraph<T, E> {
+  getSubGraphStartingFrom (startNodeIdentity: unknown): DirectedAcyclicGraph<T, E> {
     return DirectedAcyclicGraph.fromDirectedGraph(super.getSubGraphStartingFrom(startNodeIdentity))
   }
 
@@ -137,7 +142,7 @@ export class DirectedAcyclicGraph<T, E = true> extends DirectedGraph<T, E> {
    * @param fromNodeIdentity The identity of the from node
    * @param toNodeIdentity The identity of the to node
    */
-  removeEdge(fromNodeIdentity: unknown, toNodeIdentity: unknown) {
+  removeEdge (fromNodeIdentity: unknown, toNodeIdentity: unknown): void {
     super.removeEdge(fromNodeIdentity, toNodeIdentity)
 
     // Invalidate the topologically sorted nodes cache
@@ -150,7 +155,7 @@ export class DirectedAcyclicGraph<T, E = true> extends DirectedGraph<T, E> {
    *
    * @param nodeIdentity The identity of the node to be deleted.
    */
-  remove(nodeIdentity: unknown) {
+  remove (nodeIdentity: unknown): void {
     super.remove(nodeIdentity)
 
     // Invalidate the topologically sorted nodes cache

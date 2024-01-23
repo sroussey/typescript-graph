@@ -5,13 +5,13 @@ import { CycleError } from '../src/errors'
  * Directed Acyclic Graph test
  */
 
-describe("Directed Acyclic Graph", () => {
-  it("can be instantiated", () => {
-    expect(new DirectedAcyclicGraph<{}>()).toBeInstanceOf(DirectedAcyclicGraph)
+describe('Directed Acyclic Graph', () => {
+  it('can be instantiated', () => {
+    expect(new DirectedAcyclicGraph<Record<string, unknown>>()).toBeInstanceOf(DirectedAcyclicGraph)
   })
 
-  it("can be converted from a directed graph", () => {
-    type NodeType = { name: string }
+  it('can be converted from a directed graph', () => {
+    interface NodeType { name: string }
     const graph = new DirectedGraph<NodeType>((n: NodeType) => n.name)
 
     graph.insert({ name: 'A' })
@@ -23,15 +23,14 @@ describe("Directed Acyclic Graph", () => {
     graph.addEdge('A', 'C')
 
     expect(DirectedAcyclicGraph.fromDirectedGraph(graph)).toBeInstanceOf(DirectedAcyclicGraph)
-    
+
     graph.addEdge('C', 'A')
 
     expect(() => DirectedAcyclicGraph.fromDirectedGraph(graph)).toThrow(CycleError)
   })
 
-
   it("can add an edge only if it wouldn't create a cycle", () => {
-    type NodeType = { name: string }
+    interface NodeType { name: string }
     const graph = new DirectedAcyclicGraph<NodeType>((n: NodeType) => n.name)
 
     graph.insert({ name: 'A' })
@@ -42,11 +41,11 @@ describe("Directed Acyclic Graph", () => {
     graph.addEdge('B', 'C')
     graph.addEdge('A', 'C')
 
-    expect(() => graph.addEdge('C', 'A')).toThrow(CycleError)
+    expect(() => { graph.addEdge('C', 'A') }).toThrow(CycleError)
   })
 
   it("can get it's nodes topologically sorted", () => {
-    type NodeType = { name: string }
+    interface NodeType { name: string }
     const graph = new DirectedAcyclicGraph<NodeType>((n: NodeType) => n.name)
 
     expect(graph.topologicallySortedNodes()).toEqual([])
@@ -55,7 +54,7 @@ describe("Directed Acyclic Graph", () => {
     graph.insert({ name: 'B' })
     graph.insert({ name: 'C' })
 
-    const topoList1 = graph.topologicallySortedNodes();
+    const topoList1 = graph.topologicallySortedNodes()
 
     expect(topoList1).toContainEqual({ name: 'A' })
     expect(topoList1).toContainEqual({ name: 'B' })
@@ -64,17 +63,17 @@ describe("Directed Acyclic Graph", () => {
     graph.addEdge('A', 'C')
     graph.addEdge('C', 'B')
 
-    const topoList2 = graph.topologicallySortedNodes();
+    const topoList2 = graph.topologicallySortedNodes()
 
     expect(topoList2).toEqual([{ name: 'A' }, { name: 'C' }, { name: 'B' }])
-    
+
     graph.insert({ name: 'D' })
     graph.insert({ name: 'E' })
 
     graph.addEdge('A', 'D')
     graph.addEdge('B', 'E')
-    
-    const topoList3 = graph.topologicallySortedNodes();
+
+    const topoList3 = graph.topologicallySortedNodes()
 
     expect(topoList3[0]).toEqual({ name: 'A' })
     expect(topoList3[4]).toEqual({ name: 'E' })
@@ -84,22 +83,22 @@ describe("Directed Acyclic Graph", () => {
 
     graph.insert({ name: 'F' })
 
-    const topoList4 = graph.topologicallySortedNodes();
+    const topoList4 = graph.topologicallySortedNodes()
 
     expect(topoList4).toContainEqual({ name: 'F' })
     expect([{ name: 'A' }, { name: 'F' }]).toContainEqual(topoList4[0])
     expect([{ name: 'A' }, { name: 'F' }]).toContainEqual(topoList4[1])
   })
 
-  it("can return a subgraph based on walking from a start node", () => {
-    type NodeType = { name: string }
+  it('can return a subgraph based on walking from a start node', () => {
+    interface NodeType { name: string }
     const graph = new DirectedAcyclicGraph<NodeType>((n: NodeType) => n.name)
 
     graph.insert({ name: 'A' })
     graph.insert({ name: 'B' })
     graph.insert({ name: 'C' })
 
-    const testGraph = new DirectedAcyclicGraph<NodeType>((n: NodeType) => n.name);
+    const testGraph = new DirectedAcyclicGraph<NodeType>((n: NodeType) => n.name)
     testGraph.insert({ name: 'A' })
 
     expect(graph.getSubGraphStartingFrom('A').getNodes()).toEqual(testGraph.getNodes())
@@ -107,29 +106,27 @@ describe("Directed Acyclic Graph", () => {
     graph.addEdge('A', 'B')
     graph.addEdge('B', 'C')
 
-    const subGraph = graph.getSubGraphStartingFrom('A');
+    const subGraph = graph.getSubGraphStartingFrom('A')
 
     expect(subGraph.getNodes()).toContainEqual({ name: 'A' })
     expect(subGraph.getNodes()).toContainEqual({ name: 'B' })
     expect(subGraph.getNodes()).toContainEqual({ name: 'C' })
-    expect(subGraph.canReachFrom('A', 'C')).toBe(true);
+    expect(subGraph.canReachFrom('A', 'C')).toBe(true)
 
     graph.insert({ name: 'D' })
 
-    const subGraph2 = graph.getSubGraphStartingFrom('A');
+    const subGraph2 = graph.getSubGraphStartingFrom('A')
 
     expect(subGraph2.getNodes()).not.toContainEqual({ name: 'D' })
 
     graph.addEdge('B', 'D')
 
-    const subGraph3 = graph.getSubGraphStartingFrom('A');
+    const subGraph3 = graph.getSubGraphStartingFrom('A')
 
     expect(subGraph3.getNodes()).toContainEqual({ name: 'D' })
-    expect(subGraph3.canReachFrom('A', 'C')).toBe(true);
-    expect(subGraph3.canReachFrom('A', 'D')).toBe(true);
-    expect(subGraph3.canReachFrom('B', 'D')).toBe(true);
-    expect(subGraph3.canReachFrom('C', 'D')).toBe(false);
-
+    expect(subGraph3.canReachFrom('A', 'C')).toBe(true)
+    expect(subGraph3.canReachFrom('A', 'D')).toBe(true)
+    expect(subGraph3.canReachFrom('B', 'D')).toBe(true)
+    expect(subGraph3.canReachFrom('C', 'D')).toBe(false)
   })
-
 })

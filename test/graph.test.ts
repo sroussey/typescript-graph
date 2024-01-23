@@ -1,6 +1,6 @@
 import { NodeAlreadyExistsError, NodeDoesntExistError } from '../src/errors'
 import { Graph } from '../src/'
-var hash = require('object-hash')
+import hash from 'object-hash'
 
 /***
  * Graph test
@@ -8,11 +8,11 @@ var hash = require('object-hash')
 
 describe('Graph', () => {
   it('can be instantiated', () => {
-    expect(new Graph<{}>()).toBeInstanceOf(Graph)
+    expect(new Graph<Record<string, any>>()).toBeInstanceOf(Graph)
   })
 
   it('can add a node', () => {
-    const graph = new Graph<{ a: number; b: string }>()
+    const graph = new Graph<{ a: number, b: string }>()
 
     graph.insert({ a: 1, b: 'b' })
 
@@ -29,7 +29,7 @@ describe('Graph', () => {
   })
 
   it('can remove a node', () => {
-    const graph = new Graph<{ a: number; b: string }>()
+    const graph = new Graph<{ a: number, b: string }>()
 
     graph.insert({ a: 1, b: 'b' })
 
@@ -44,7 +44,10 @@ describe('Graph', () => {
   })
 
   it('can add a node with custom identity function', () => {
-    type NodeType = { a: number; b: string }
+    interface NodeType {
+      a: number
+      b: string
+    }
     const graph = new Graph<NodeType>((n: NodeType) => n.a.toFixed(2))
 
     graph.insert({ a: 1, b: 'b' })
@@ -72,7 +75,7 @@ describe('Graph', () => {
   })
 
   it('can replace a node', () => {
-    const graph = new Graph<{ a: number; b: string }>()
+    const graph = new Graph<{ a: number, b: string }>()
 
     graph.insert({ a: 1, b: 'b' })
     graph.replace({ a: 1, b: 'b' })
@@ -89,7 +92,10 @@ describe('Graph', () => {
   })
 
   it('can replace a node with custom identity function', () => {
-    type NodeType = { a: number; b: string }
+    interface NodeType {
+      a: number
+      b: string
+    }
     const graph = new Graph<NodeType>((n: NodeType) => n.a.toFixed(2))
 
     graph.insert({ a: 1, b: 'b' })
@@ -116,7 +122,10 @@ describe('Graph', () => {
   })
 
   it('can upsert a node', () => {
-    type NodeType = { a: number; b: string }
+    interface NodeType {
+      a: number
+      b: string
+    }
     const graph = new Graph<NodeType>((n: NodeType) => n.a.toFixed(2))
 
     graph.insert({ a: 1, b: 'b' })
@@ -138,14 +147,23 @@ describe('Graph', () => {
   })
 
   it('can add an edge', () => {
-    type NodeType = { a: number; b: string }
+    interface NodeType {
+      a: number
+      b: string
+    }
     const graph = new Graph<NodeType>((n: NodeType) => n.a.toFixed(2))
 
     graph.insert({ a: 1, b: 'b' })
 
-    expect(() => graph.addEdge('3.00', '2.00')).toThrow(NodeDoesntExistError)
-    expect(() => graph.addEdge('1.00', '2.00')).toThrow(NodeDoesntExistError)
-    expect(() => graph.addEdge('2.00', '1.00')).toThrow(NodeDoesntExistError)
+    expect(() => {
+      graph.addEdge('3.00', '2.00')
+    }).toThrow(NodeDoesntExistError)
+    expect(() => {
+      graph.addEdge('1.00', '2.00')
+    }).toThrow(NodeDoesntExistError)
+    expect(() => {
+      graph.addEdge('2.00', '1.00')
+    }).toThrow(NodeDoesntExistError)
 
     graph.insert({ a: 2, b: 'b' })
     graph.insert({ a: 3, b: 'b' })
@@ -163,7 +181,10 @@ describe('Graph', () => {
   })
 
   it('can remove an edge', () => {
-    type NodeType = { a: number; b: string }
+    interface NodeType {
+      a: number
+      b: string
+    }
     const graph = new Graph<NodeType>((n: NodeType) => n.a.toFixed(2))
 
     graph.insert({ a: 1, b: 'b' })
@@ -189,7 +210,10 @@ describe('Graph', () => {
   })
 
   it('can return the nodes', () => {
-    type NodeType = { a: number; b: string }
+    interface NodeType {
+      a: number
+      b: string
+    }
     const graph = new Graph<NodeType>((n: NodeType) => n.a.toFixed(2))
 
     graph.insert({ a: 1, b: 'b' })
@@ -207,7 +231,10 @@ describe('Graph', () => {
   })
 
   it('can return the nodes sorted', () => {
-    type NodeType = { a: number; b: string }
+    interface NodeType {
+      a: number
+      b: string
+    }
     const graph = new Graph<NodeType>((n: NodeType) => n.a.toFixed(2))
 
     graph.insert({ a: 2, b: 'b' })
@@ -224,8 +251,11 @@ describe('Graph', () => {
   })
 
   it('can get a specific node', () => {
-    type NodeType = { a: number; b: string }
-    const identityfn = (n: NodeType) => n.a.toFixed(2)
+    interface NodeType {
+      a: number
+      b: string
+    }
+    const identityfn = (n: NodeType): string => n.a.toFixed(2)
     const graph = new Graph<NodeType>(identityfn)
 
     const inputToRetrieve = { a: 1, b: 'c' }

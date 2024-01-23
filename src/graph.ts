@@ -4,7 +4,7 @@ import { NodeAlreadyExistsError, NodeDoesntExistError } from './errors'
  * This is the default [[Graph.constructor | `nodeIdentity`]] function it is simply imported from [object-hash](https://www.npmjs.com/package/object-hash)
  */
 
-var hash = require('object-hash')
+import hash from 'object-hash'
 
 /**
  * # Graph
@@ -122,7 +122,7 @@ export class Graph<T, E = true> {
 
     this.nodes.set(this.nodeIdentity(node), node)
     this.adjacency.map(adj => adj.push(null))
-    this.adjacency.push(new Array(this.adjacency.length + 1).fill(null))
+    this.adjacency.push(new Array<E | null>(this.adjacency.length + 1).fill(null))
 
     return this.nodeIdentity(node)
   }
@@ -135,7 +135,7 @@ export class Graph<T, E = true> {
    *
    * @param node The new node that is replacing the old one.
    */
-  replace(node: T) {
+  replace(node: T): void {
     const isOverwrite = this.nodes.has(this.nodeIdentity(node))
 
     if (!isOverwrite) {
@@ -159,7 +159,7 @@ export class Graph<T, E = true> {
 
     if (!isOverwrite) {
       this.adjacency.map(adj => adj.push(null))
-      this.adjacency.push(new Array(this.adjacency.length + 1).fill(null))
+      this.adjacency.push(new Array<E | null>(this.adjacency.length + 1).fill(null))
     }
 
     return this.nodeIdentity(node)
@@ -172,7 +172,7 @@ export class Graph<T, E = true> {
    * @param node1Identity The first node to connect (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `from` node.)
    * @param node2Identity The second node to connect (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `to` node)
    */
-  addEdge(node1Identity: unknown, node2Identity: unknown, edge?: E) {
+  addEdge(node1Identity: unknown, node2Identity: unknown, edge?: E): void {
     const node1Exists = this.nodes.has(node1Identity)
     const node2Exists = this.nodes.has(node2Identity)
 
@@ -198,7 +198,7 @@ export class Graph<T, E = true> {
   getNodes(compareFunc?: (a: T, b: T) => number): T[] {
     const temp = Array.from(this.nodes.values())
 
-    if (compareFunc) {
+    if (compareFunc !== undefined) {
       return temp.sort(compareFunc)
     }
 
@@ -207,8 +207,6 @@ export class Graph<T, E = true> {
 
   /**
    * Returns a specific node given the node identity returned from the [[`insert`]] function
-   *
-   * @param compareFunc An optional function that indicates the sort order of the returned array
    */
   getNode(nodeIdentity: unknown): T | undefined {
     return this.nodes.get(nodeIdentity)
@@ -221,7 +219,7 @@ export class Graph<T, E = true> {
    * @param node1Identity The identity of the first node (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `from` node.)
    * @param node2Identity The identity of the second node (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `to` node)
    */
-  removeEdge(node1Identity: unknown, node2Identity: unknown) {
+  removeEdge(node1Identity: unknown, node2Identity: unknown): void {
     const node1Exists = this.nodes.has(node1Identity)
     const node2Exists = this.nodes.has(node2Identity)
 
@@ -245,7 +243,7 @@ export class Graph<T, E = true> {
    *
    * @param nodeIdentity The identity of the node to be deleted.
    */
-  remove(nodeIdentity: unknown) {
+  remove(nodeIdentity: unknown): void {
     if (!this.nodes.has(nodeIdentity)) {
       throw new NodeDoesntExistError(nodeIdentity)
     }
