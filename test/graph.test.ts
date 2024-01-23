@@ -28,6 +28,21 @@ describe('Graph', () => {
     expect((graph as any).adjacency[0].length).toBe(1)
   })
 
+  it('can remove a node', () => {
+    const graph = new Graph<{ a: number; b: string }>()
+
+    graph.insert({ a: 1, b: 'b' })
+
+    expect((graph as any).nodes.size).toBe(1)
+    expect((graph as any).adjacency.length).toBe(1)
+    expect((graph as any).adjacency[0].length).toBe(1)
+
+    graph.remove(hash({ a: 1, b: 'b' }))
+
+    expect((graph as any).nodes.size).toBe(0)
+    expect((graph as any).adjacency.length).toBe(0)
+  })
+
   it('can add a node with custom identity function', () => {
     type NodeType = { a: number; b: string }
     const graph = new Graph<NodeType>((n: NodeType) => n.a.toFixed(2))
@@ -144,6 +159,32 @@ describe('Graph', () => {
     graph.addEdge('2.00', '1.00')
     expect((graph as any).adjacency[0][1]).toBeTruthy()
     expect((graph as any).adjacency[1][0]).toBeTruthy()
+    expect((graph as any).adjacency[1][2]).toBeFalsy()
+  })
+
+  it('can remove an edge', () => {
+    type NodeType = { a: number; b: string }
+    const graph = new Graph<NodeType>((n: NodeType) => n.a.toFixed(2))
+
+    graph.insert({ a: 1, b: 'b' })
+    graph.insert({ a: 2, b: 'b' })
+    graph.insert({ a: 3, b: 'b' })
+    graph.insert({ a: 4, b: 'b' })
+
+    graph.addEdge('1.00', '2.00')
+    expect((graph as any).adjacency[0][1]).toBeTruthy()
+    expect((graph as any).adjacency[1][0]).toBeFalsy()
+    expect((graph as any).adjacency[1][2]).toBeFalsy()
+
+    graph.addEdge('2.00', '1.00')
+    expect((graph as any).adjacency[0][1]).toBeTruthy()
+    expect((graph as any).adjacency[1][0]).toBeTruthy()
+    expect((graph as any).adjacency[1][2]).toBeFalsy()
+
+    graph.removeEdge('1.00', '2.00')
+    graph.removeEdge('2.00', '1.00')
+    expect((graph as any).adjacency[0][1]).toBeFalsy()
+    expect((graph as any).adjacency[1][0]).toBeFalsy()
     expect((graph as any).adjacency[1][2]).toBeFalsy()
   })
 

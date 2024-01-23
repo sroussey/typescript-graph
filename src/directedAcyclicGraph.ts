@@ -137,8 +137,8 @@ export class DirectedAcyclicGraph<T, E = true> extends DirectedGraph<T, E> {
    * @param fromNodeIdentity The identity of the from node
    * @param toNodeIdentity The identity of the to node
    */
-  deleteEdge(fromNodeIdentity: unknown, toNodeIdentity: unknown) {
-    super.deleteEdge(fromNodeIdentity, toNodeIdentity)
+  removeEdge(fromNodeIdentity: unknown, toNodeIdentity: unknown) {
+    super.removeEdge(fromNodeIdentity, toNodeIdentity)
 
     // Invalidate the topologically sorted nodes cache
     this._topologicallySortedNodes = undefined
@@ -150,8 +150,8 @@ export class DirectedAcyclicGraph<T, E = true> extends DirectedGraph<T, E> {
    *
    * @param nodeIdentity The identity of the node to be deleted.
    */
-  deleteNode(nodeIdentity: unknown) {
-    super.deleteNode(nodeIdentity)
+  remove(nodeIdentity: unknown) {
+    super.remove(nodeIdentity)
 
     // Invalidate the topologically sorted nodes cache
     this._topologicallySortedNodes = undefined

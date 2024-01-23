@@ -207,8 +207,8 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
    * @param fromNodeIdentity The identity of the from node
    * @param toNodeIdentity The identity of the to node
    */
-  deleteEdge(fromNodeIdentity: unknown, toNodeIdentity: unknown) {
-    super.deleteEdge(fromNodeIdentity, toNodeIdentity)
+  removeEdge(fromNodeIdentity: unknown, toNodeIdentity: unknown) {
+    super.removeEdge(fromNodeIdentity, toNodeIdentity)
 
     // Invalidate the cycle cache as the graph structure has changed
     this.hasCycle = undefined
@@ -220,8 +220,8 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
    *
    * @param nodeIdentity The identity of the node to be deleted.
    */
-  deleteNode(nodeIdentity: unknown) {
-    super.deleteNode(nodeIdentity)
+  remove(nodeIdentity: unknown) {
+    super.remove(nodeIdentity)
 
     // Invalidate the cycle cache as the graph structure has changed
     this.hasCycle = undefined

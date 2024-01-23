@@ -221,7 +221,7 @@ export class Graph<T, E = true> {
    * @param node1Identity The identity of the first node (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `from` node.)
    * @param node2Identity The identity of the second node (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `to` node)
    */
-  deleteEdge(node1Identity: unknown, node2Identity: unknown) {
+  removeEdge(node1Identity: unknown, node2Identity: unknown) {
     const node1Exists = this.nodes.has(node1Identity)
     const node2Exists = this.nodes.has(node2Identity)
 
@@ -245,7 +245,7 @@ export class Graph<T, E = true> {
    *
    * @param nodeIdentity The identity of the node to be deleted.
    */
-  deleteNode(nodeIdentity: unknown) {
+  remove(nodeIdentity: unknown) {
     if (!this.nodes.has(nodeIdentity)) {
       throw new NodeDoesntExistError(nodeIdentity)
     }
