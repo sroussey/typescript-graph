@@ -98,7 +98,8 @@ export class Graph<T, E = true> {
   protected nodeIdentity: (t: T) => unknown
 
   constructor(
-    nodeIdentity: (node: T) => unknown = (node) => (node !== undefined ? hash(node) : null),
+    nodeIdentity: (node: T) => unknown = (node) =>
+      node !== undefined ? hash(node as object) : null,
   ) {
     this.nodes = new Map()
     this.adjacency = []

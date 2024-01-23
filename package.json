@@ -6,7 +6,6 @@
   "keywords": [],
   "main": "dist/cls/index.js",
   "module": "dist/esm/index.js",
-  "typings": "dist/types/index.ts",
   "files": [
     "dist"
   ],
@@ -26,11 +25,10 @@
   "scripts": {
     "lint": "npx eslint 'src/**/*.ts' 'test/**/*.ts' --fix",
     "prebuild": "rimraf dist",
-    "build": "npm run build-esm && npm run build-cjs && npm run build-types && npm run build-docs",
+    "build": "npm run build-esm && npm run build-cjs && npm run build-docs",
     "build-docs": "typedoc --out docs --theme default src",
-    "build-types": "tsc --declaration --emitDeclarationOnly src/* --outDir dist/types",
-    "build-esm": "bun build ./src/*.ts --outdir ./dist/esm --format esm --sourcemap=external",
-    "build-cjs": "bun build ./src/*.ts --outdir ./dist/cls --sourcemap=external",
+    "build-esm": "tsc -p tsconfig-esm.json && cp dist-package-esm.json dist/esm/package.json",
+    "build-cjs": "tsc -p tsconfig-cjs.json && cp dist-package-cjs.json dist/cjs/package.json",
     "test": "bun test --coverage",
     "test:watch": "bun test --watch",
     "test:prod": "npm run lint && npm run test -- --no-cache",

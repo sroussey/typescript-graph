@@ -1,18 +1,14 @@
 {
   "compilerOptions": {
-    "moduleResolution": "node",
-    "target": "es5",
-    "module":"es2015",
-    "lib": ["es2015", "es2016", "es2017", "dom"],
-    "strict": true,
+    "lib": ["ESNext"],
+    "strict": false,
+    "strictNullChecks": true,
     "sourceMap": true,
     "declaration": true,
-    "emitDeclarationOnly": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "declarationDir": "dist/types",
-    "esModuleInterop":true,
+    "esModuleInterop": true,
     "typeRoots": [
       "node_modules/@types"
     ]
