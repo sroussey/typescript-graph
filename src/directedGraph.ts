@@ -8,7 +8,7 @@ import { Graph } from './graph'
  *
  * @typeParam T `T` is the node type of the graph. Nodes can be anything in all the included examples they are simple objects.
  */
-export class DirectedGraph<T, E = true> extends Graph<T, E> {
+export class DirectedGraph<T, E = true, TI = unknown> extends Graph<T, E, TI> {
   /** Caches if the graph contains a cycle. If `undefined` then it is unknown. */
   protected hasCycle: boolean = false
 
@@ -65,7 +65,7 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
    *
    * @param nodeID The string of the node identity of the node to calculate indegree for.
    */
-  indegreeOfNode(nodeID: unknown): number {
+  indegreeOfNode(nodeID: TI): number {
     const nodeIdentities = Array.from(this.nodes.keys())
     const indexOfNode = nodeIdentities.indexOf(nodeID)
 
@@ -87,8 +87,8 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
    * If `false` is passed the cached will be invalidated because we can not assure that a cycle has not been created.
    */
   addEdge(
-    fromNodeIdentity: unknown,
-    toNodeIdentity: unknown,
+    fromNodeIdentity: TI,
+    toNodeIdentity: TI,
     edge?: E,
     skipUpdatingCyclicality: boolean = false,
   ): void {
@@ -109,7 +109,7 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
    * @param startNode The string identity of the node to start at.
    * @param endNode The string identity of the node we are attempting to reach.
    */
-  canReachFrom(startNode: unknown, endNode: unknown): boolean {
+  canReachFrom(startNode: TI, endNode: TI): boolean {
     const nodeIdentities = Array.from(this.nodes.keys())
     const startNodeIndex = nodeIdentities.indexOf(startNode)
     const endNodeIndex = nodeIdentities.indexOf(endNode)
@@ -134,7 +134,7 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
    * @param fromNodeIdentity The string identity of the node the edge is from.
    * @param toNodeIdentity The string identity of the node the edge is to.
    */
-  wouldAddingEdgeCreateCycle(fromNodeIdentity: unknown, toNodeIdentity: unknown): boolean {
+  wouldAddingEdgeCreateCycle(fromNodeIdentity: TI, toNodeIdentity: TI): boolean {
     return (
       this.hasCycle ||
       fromNodeIdentity === toNodeIdentity ||
@@ -148,7 +148,7 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
    *
    * @param startNodeIdentity The string identity of the node from which the subgraph search should start.
    */
-  getSubGraphStartingFrom(startNodeIdentity: unknown): DirectedGraph<T, E> {
+  getSubGraphStartingFrom(startNodeIdentity: TI): DirectedGraph<T, E> {
     const nodeIndices = Array.from(this.nodes.keys())
     const initalNode = this.nodes.get(startNodeIdentity)
 
@@ -156,7 +156,7 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
       throw new NodeDoesntExistError(startNodeIdentity)
     }
 
-    const recur = (startNodeIdentity: unknown, nodesToInclude: T[]): T[] => {
+    const recur = (startNodeIdentity: TI, nodesToInclude: T[]): T[] => {
       let toReturn = [...nodesToInclude]
       const nodeIndex = nodeIndices.indexOf(startNodeIdentity)
       this.adjacency[nodeIndex].forEach((hasAdj, index) => {
@@ -203,7 +203,7 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
   /**
    * Returns all edges in the graph as an array of tuples.
    */
-  getEdges(): Array<[fromNodeIdentity: unknown, toNodeIdentity: unknown, edge: E]> {
+  getEdges(): Array<[fromNodeIdentity: TI, toNodeIdentity: TI, edge: E]> {
     return super.getEdges()
   }
 
@@ -214,7 +214,7 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
    * @param fromNodeIdentity The identity of the from node
    * @param toNodeIdentity The identity of the to node
    */
-  removeEdge(fromNodeIdentity: unknown, toNodeIdentity: unknown): void {
+  removeEdge(fromNodeIdentity: TI, toNodeIdentity: TI): void {
     super.removeEdge(fromNodeIdentity, toNodeIdentity)
 
     // Invalidate the cycle cache as the graph structure has changed
@@ -227,7 +227,7 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
    *
    * @param nodeIdentity The identity of the node to be deleted.
    */
-  remove(nodeIdentity: unknown): void {
+  remove(nodeIdentity: TI): void {
     super.remove(nodeIdentity)
 
     // Invalidate the cycle cache as the graph structure has changed

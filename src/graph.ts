@@ -92,15 +92,12 @@ import hash from 'object-hash'
  *
  * @typeParam T  `T` is the node type of the graph. Nodes can be anything in all the included examples they are simple objects.
  */
-export class Graph<T, E = true> {
-  protected nodes: Map<unknown, T>
+export class Graph<T, E = true, TI = unknown> {
+  protected nodes: Map<TI, T>
   protected adjacency: Array<Array<E | null>>
-  protected nodeIdentity: (t: T) => unknown
+  protected nodeIdentity: (t: T) => TI
 
-  constructor(
-    nodeIdentity: (node: T) => unknown = (node) =>
-      node !== undefined ? hash(node as object) : null,
-  ) {
+  constructor(nodeIdentity: (node: T) => TI = (node) => hash(node as object) as TI) {
     this.nodes = new Map()
     this.adjacency = []
     this.nodeIdentity = nodeIdentity
@@ -112,7 +109,7 @@ export class Graph<T, E = true> {
    * @param node The node to be added
    * @returns A `string` that is the identity of the newly inserted node. This is created by applying the [[constructor | `nodeIdentity`]].
    */
-  insert(node: T): unknown {
+  insert(node: T): TI {
     const isOverwrite = this.nodes.has(this.nodeIdentity(node))
 
     if (isOverwrite) {
@@ -155,7 +152,7 @@ export class Graph<T, E = true> {
    * @param node The node to insert or update
    * @returns The identity string of the node inserted or updated.
    */
-  upsert(node: T): unknown {
+  upsert(node: T): TI {
     const isOverwrite = this.nodes.has(this.nodeIdentity(node))
 
     this.nodes.set(this.nodeIdentity(node), node)
@@ -175,7 +172,7 @@ export class Graph<T, E = true> {
    * @param node1Identity The first node to connect (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `from` node.)
    * @param node2Identity The second node to connect (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `to` node)
    */
-  addEdge(node1Identity: unknown, node2Identity: unknown, edge?: E): void {
+  addEdge(node1Identity: TI, node2Identity: TI, edge?: E): void {
     const node1Exists = this.nodes.has(node1Identity)
     const node2Exists = this.nodes.has(node2Identity)
 
@@ -211,32 +208,33 @@ export class Graph<T, E = true> {
   /**
    * Returns a specific node given the node identity returned from the [[`insert`]] function
    */
-  getNode(nodeIdentity: unknown): T | undefined {
+  getNode(nodeIdentity: TI): T | undefined {
     return this.nodes.get(nodeIdentity)
   }
 
   /**
    * Returns true if the node exists in the graph.
    */
-  hasNode(nodeIdentity: unknown): boolean {
+  hasNode(nodeIdentity: TI): boolean {
     return this.nodes.has(nodeIdentity)
   }
 
   /**
    * Returns all edges in the graph as an array of tuples.
    */
-  getEdges(): Array<[node1Identity: unknown, node2Identity: unknown, edge: E]> {
-    const toReturn: Array<[node1Identity: unknown, node2Identity: unknown, edge: E]> = []
+  getEdges(): Array<[node1Identity: TI, node2Identity: TI, edge: E]> {
+    const toReturn: Array<[node1Identity: TI, node2Identity: TI, edge: E]> = []
 
-    const nodeValues = Array.from(this.nodes.values())
+    const nodeValues = Array.from(this.nodes.keys())
     this.adjacency.forEach((row, rowIndex) => {
       const node1Identity = nodeValues[rowIndex]
       if (node1Identity != null) {
         row.forEach((edge, colIndex) => {
           if (edge !== null) {
             const node2Identity = nodeValues[colIndex]
-
-            toReturn.push([node1Identity, node2Identity, edge])
+            if (node2Identity != null) {
+              toReturn.push([node1Identity, node2Identity, edge])
+            }
           }
         })
       }
@@ -252,7 +250,7 @@ export class Graph<T, E = true> {
    * @param node1Identity The identity of the first node (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `from` node.)
    * @param node2Identity The identity of the second node (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `to` node)
    */
-  removeEdge(node1Identity: unknown, node2Identity: unknown): void {
+  removeEdge(node1Identity: TI, node2Identity: TI): void {
     const node1Exists = this.nodes.has(node1Identity)
     const node2Exists = this.nodes.has(node2Identity)
 
@@ -276,7 +274,7 @@ export class Graph<T, E = true> {
    *
    * @param nodeIdentity The identity of the node to be deleted.
    */
-  remove(nodeIdentity: unknown): void {
+  remove(nodeIdentity: TI): void {
     if (!this.nodes.has(nodeIdentity)) {
       throw new NodeDoesntExistError(nodeIdentity)
     }
