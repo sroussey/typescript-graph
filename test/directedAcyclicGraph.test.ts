@@ -11,7 +11,9 @@ describe('Directed Acyclic Graph', () => {
   })
 
   it('can be converted from a directed graph', () => {
-    interface NodeType { name: string }
+    interface NodeType {
+      name: string
+    }
     const graph = new DirectedGraph<NodeType>((n: NodeType) => n.name)
 
     graph.insert({ name: 'A' })
@@ -30,7 +32,9 @@ describe('Directed Acyclic Graph', () => {
   })
 
   it("can add an edge only if it wouldn't create a cycle", () => {
-    interface NodeType { name: string }
+    interface NodeType {
+      name: string
+    }
     const graph = new DirectedAcyclicGraph<NodeType>((n: NodeType) => n.name)
 
     graph.insert({ name: 'A' })
@@ -41,11 +45,15 @@ describe('Directed Acyclic Graph', () => {
     graph.addEdge('B', 'C')
     graph.addEdge('A', 'C')
 
-    expect(() => { graph.addEdge('C', 'A') }).toThrow(CycleError)
+    expect(() => {
+      graph.addEdge('C', 'A')
+    }).toThrow(CycleError)
   })
 
   it("can get it's nodes topologically sorted", () => {
-    interface NodeType { name: string }
+    interface NodeType {
+      name: string
+    }
     const graph = new DirectedAcyclicGraph<NodeType>((n: NodeType) => n.name)
 
     expect(graph.topologicallySortedNodes()).toEqual([])
@@ -91,7 +99,9 @@ describe('Directed Acyclic Graph', () => {
   })
 
   it('can return a subgraph based on walking from a start node', () => {
-    interface NodeType { name: string }
+    interface NodeType {
+      name: string
+    }
     const graph = new DirectedAcyclicGraph<NodeType>((n: NodeType) => n.name)
 
     graph.insert({ name: 'A' })

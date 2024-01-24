@@ -17,17 +17,17 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
    * This relies on a cached value so calling it multiple times without adding edges to the graph should be O(1) after the first call.
    * Non-cached calls are potentially expensive, the implementation is based on Kahn's algorithim which is O(|EdgeCount| + |NodeCount|).
    */
-  isAcyclic (): boolean {
+  isAcyclic(): boolean {
     if (this.hasCycle !== undefined) {
       return !this.hasCycle
     }
 
     const nodeIndices = Array.from(this.nodes.keys())
     const nodeInDegrees = new Map(
-      Array.from(this.nodes.keys()).map(n => [n, this.indegreeOfNode(n)])
+      Array.from(this.nodes.keys()).map((n) => [n, this.indegreeOfNode(n)]),
     )
 
-    const toSearch = Array.from(nodeInDegrees).filter(pair => pair[1] === 0)
+    const toSearch = Array.from(nodeInDegrees).filter((pair) => pair[1] === 0)
 
     let visitedNodes = 0
 
@@ -65,7 +65,7 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
    *
    * @param nodeID The string of the node identity of the node to calculate indegree for.
    */
-  indegreeOfNode (nodeID: unknown): number {
+  indegreeOfNode(nodeID: unknown): number {
     const nodeIdentities = Array.from(this.nodes.keys())
     const indexOfNode = nodeIdentities.indexOf(nodeID)
 
@@ -86,11 +86,11 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
    * @param skipUpdatingCyclicality This boolean indicates if the cache of the cyclicality of the graph should be updated.
    * If `false` is passed the cached will be invalidated because we can not assure that a cycle has not been created.
    */
-  addEdge (
+  addEdge(
     fromNodeIdentity: unknown,
     toNodeIdentity: unknown,
     edge?: E,
-    skipUpdatingCyclicality: boolean = false
+    skipUpdatingCyclicality: boolean = false,
   ): void {
     if (!this.hasCycle && !skipUpdatingCyclicality) {
       this.hasCycle = this.wouldAddingEdgeCreateCycle(fromNodeIdentity, toNodeIdentity)
@@ -109,7 +109,7 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
    * @param startNode The string identity of the node to start at.
    * @param endNode The string identity of the node we are attempting to reach.
    */
-  canReachFrom (startNode: unknown, endNode: unknown): boolean {
+  canReachFrom(startNode: unknown, endNode: unknown): boolean {
     const nodeIdentities = Array.from(this.nodes.keys())
     const startNodeIndex = nodeIdentities.indexOf(startNode)
     const endNodeIndex = nodeIdentities.indexOf(endNode)
@@ -134,7 +134,7 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
    * @param fromNodeIdentity The string identity of the node the edge is from.
    * @param toNodeIdentity The string identity of the node the edge is to.
    */
-  wouldAddingEdgeCreateCycle (fromNodeIdentity: unknown, toNodeIdentity: unknown): boolean {
+  wouldAddingEdgeCreateCycle(fromNodeIdentity: unknown, toNodeIdentity: unknown): boolean {
     return (
       this.hasCycle ||
       fromNodeIdentity === toNodeIdentity ||
@@ -148,7 +148,7 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
    *
    * @param startNodeIdentity The string identity of the node from which the subgraph search should start.
    */
-  getSubGraphStartingFrom (startNodeIdentity: unknown): DirectedGraph<T, E> {
+  getSubGraphStartingFrom(startNodeIdentity: unknown): DirectedGraph<T, E> {
     const nodeIndices = Array.from(this.nodes.keys())
     const initalNode = this.nodes.get(startNodeIdentity)
 
@@ -162,7 +162,7 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
       this.adjacency[nodeIndex].forEach((hasAdj, index) => {
         if (
           hasAdj !== null &&
-          nodesToInclude.find(n => this.nodeIdentity(n) === nodeIndices[index]) == null
+          nodesToInclude.find((n) => this.nodeIdentity(n) === nodeIndices[index]) == null
         ) {
           const newNode = this.nodes.get(nodeIndices[index])
 
@@ -177,8 +177,8 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
 
     const newGraph = new DirectedGraph<T, E>(this.nodeIdentity)
     const nodeList = recur(startNodeIdentity, [initalNode])
-    const includeIdents = nodeList.map(t => this.nodeIdentity(t))
-    Array.from(this.nodes.values()).forEach(n => {
+    const includeIdents = nodeList.map((t) => this.nodeIdentity(t))
+    Array.from(this.nodes.values()).forEach((n) => {
       if (includeIdents.includes(this.nodeIdentity(n))) {
         newGraph.insert(n)
       }
@@ -187,8 +187,8 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
     return newGraph
   }
 
-  private subAdj (include: T[]): Array<Array<E | null>> {
-    const includeIdents = include.map(t => this.nodeIdentity(t))
+  private subAdj(include: T[]): Array<Array<E | null>> {
+    const includeIdents = include.map((t) => this.nodeIdentity(t))
     const nodeIndices = Array.from(this.nodes.keys())
 
     return this.adjacency.reduce<Array<Array<E | null>>>((carry, cur, index) => {
@@ -201,13 +201,20 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
   }
 
   /**
+   * Returns all edges in the graph as an array of tuples.
+   */
+  getEdges(): Array<[fromNodeIdentity: unknown, toNodeIdentity: unknown, edge: E]> {
+    return super.getEdges()
+  }
+
+  /**
    * Deletes an edge between two nodes in the graph.
    * Throws a [[`NodeDoesNotExistsError`]] if either of the nodes do not exist.
    *
    * @param fromNodeIdentity The identity of the from node
    * @param toNodeIdentity The identity of the to node
    */
-  removeEdge (fromNodeIdentity: unknown, toNodeIdentity: unknown): void {
+  removeEdge(fromNodeIdentity: unknown, toNodeIdentity: unknown): void {
     super.removeEdge(fromNodeIdentity, toNodeIdentity)
 
     // Invalidate the cycle cache as the graph structure has changed
@@ -220,7 +227,7 @@ export class DirectedGraph<T, E = true> extends Graph<T, E> {
    *
    * @param nodeIdentity The identity of the node to be deleted.
    */
-  remove (nodeIdentity: unknown): void {
+  remove(nodeIdentity: unknown): void {
     super.remove(nodeIdentity)
 
     // Invalidate the cycle cache as the graph structure has changed

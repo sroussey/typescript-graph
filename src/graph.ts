@@ -216,6 +216,36 @@ export class Graph<T, E = true> {
   }
 
   /**
+   * Returns true if the node exists in the graph.
+   */
+  hasNode(nodeIdentity: unknown): boolean {
+    return this.nodes.has(nodeIdentity)
+  }
+
+  /**
+   * Returns all edges in the graph as an array of tuples.
+   */
+  getEdges(): Array<[node1Identity: unknown, node2Identity: unknown, edge: E]> {
+    const toReturn: Array<[node1Identity: unknown, node2Identity: unknown, edge: E]> = []
+
+    const nodeValues = Array.from(this.nodes.values())
+    this.adjacency.forEach((row, rowIndex) => {
+      const node1Identity = nodeValues[rowIndex]
+      if (node1Identity != null) {
+        row.forEach((edge, colIndex) => {
+          if (edge !== null) {
+            const node2Identity = nodeValues[colIndex]
+
+            toReturn.push([node1Identity, node2Identity, edge])
+          }
+        })
+      }
+    })
+
+    return toReturn
+  }
+
+  /**
    * Deletes an edge between two nodes in the graph.
    * Throws a [[`NodeDoesNotExistsError`]] if either of the nodes do not exist.
    *

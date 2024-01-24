@@ -12,7 +12,7 @@ describe('Graph', () => {
   })
 
   it('can add a node', () => {
-    const graph = new Graph<{ a: number, b: string }>()
+    const graph = new Graph<{ a: number; b: string }>()
 
     graph.insert({ a: 1, b: 'b' })
 
@@ -29,7 +29,7 @@ describe('Graph', () => {
   })
 
   it('can remove a node', () => {
-    const graph = new Graph<{ a: number, b: string }>()
+    const graph = new Graph<{ a: number; b: string }>()
 
     graph.insert({ a: 1, b: 'b' })
 
@@ -75,7 +75,7 @@ describe('Graph', () => {
   })
 
   it('can replace a node', () => {
-    const graph = new Graph<{ a: number, b: string }>()
+    const graph = new Graph<{ a: number; b: string }>()
 
     graph.insert({ a: 1, b: 'b' })
     graph.replace({ a: 1, b: 'b' })
@@ -246,7 +246,7 @@ describe('Graph', () => {
       { a: 1, b: 'b' },
       { a: 2, b: 'b' },
       { a: 3, b: 'b' },
-      { a: 4, b: 'b' }
+      { a: 4, b: 'b' },
     ])
   })
 
