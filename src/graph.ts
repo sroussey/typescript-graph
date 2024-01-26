@@ -271,7 +271,9 @@ export class Graph<T, E = true, TI = unknown, EI = unknown> {
   /**
    * Returns the in edges for a specific node.
    */
-  inEdges(node1Identity: TI): Array<[node1Identity: TI, node2Identity: TI, edge: InternalEdge<E>]> {
+  outEdges(
+    node1Identity: TI,
+  ): Array<[node1Identity: TI, node2Identity: TI, edge: InternalEdge<E>]> {
     const nodeKeys = Array.from(this.nodes.keys())
     const nodeIndex = nodeKeys.indexOf(node1Identity)
 
@@ -294,9 +296,7 @@ export class Graph<T, E = true, TI = unknown, EI = unknown> {
   /**
    * Returns the out edges for a specific node.
    */
-  outEdges(
-    node2Identity: TI,
-  ): Array<[node1Identity: TI, node2Identity: TI, edge: InternalEdge<E>]> {
+  inEdges(node2Identity: TI): Array<[node1Identity: TI, node2Identity: TI, edge: InternalEdge<E>]> {
     const nodeKeys = Array.from(this.nodes.keys())
     const node2Index = nodeKeys.indexOf(node2Identity)
 
@@ -321,7 +321,7 @@ export class Graph<T, E = true, TI = unknown, EI = unknown> {
   nodeEdges(
     nodeIdentity: TI,
   ): Array<[node1Identity: TI, node2Identity: TI, edge: InternalEdge<E>]> {
-    return [...this.inEdges(nodeIdentity), ...this.outEdges(nodeIdentity)]
+    return [...this.outEdges(nodeIdentity), ...this.inEdges(nodeIdentity)]
   }
 
   /**
