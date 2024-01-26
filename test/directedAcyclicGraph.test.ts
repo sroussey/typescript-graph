@@ -44,6 +44,8 @@ describe('Directed Acyclic Graph', () => {
     graph.addEdge('A', 'B')
     graph.addEdge('B', 'C')
     graph.addEdge('A', 'C')
+    graph.removeEdge('A', 'C')
+    graph.addEdge('A', 'C')
 
     expect(() => {
       graph.addEdge('C', 'A')

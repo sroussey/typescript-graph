@@ -1,5 +1,5 @@
 import { NodeDoesntExistError } from './errors'
-import { Graph } from './graph'
+import { type AdjacencyMatrix, Graph, type InternalEdge } from './graph'
 
 /**
  * # DirectedGraph
@@ -89,7 +89,7 @@ export class DirectedGraph<T, E = true, TI = unknown> extends Graph<T, E, TI> {
   addEdge(
     fromNodeIdentity: TI,
     toNodeIdentity: TI,
-    edge?: E,
+    edge: InternalEdge<E> = true,
     skipUpdatingCyclicality: boolean = false,
   ): void {
     if (!this.hasCycle && !skipUpdatingCyclicality) {
@@ -175,7 +175,7 @@ export class DirectedGraph<T, E = true, TI = unknown> extends Graph<T, E, TI> {
       return toReturn
     }
 
-    const newGraph = new DirectedGraph<T, E>(this.nodeIdentity)
+    const newGraph = new DirectedGraph<T, E>(this.nodeIdentity, this.edgeIdentity)
     const nodeList = recur(startNodeIdentity, [initalNode])
     const includeIdents = nodeList.map((t) => this.nodeIdentity(t))
     Array.from(this.nodes.values()).forEach((n) => {
@@ -187,11 +187,11 @@ export class DirectedGraph<T, E = true, TI = unknown> extends Graph<T, E, TI> {
     return newGraph
   }
 
-  private subAdj(include: T[]): Array<Array<E | null>> {
+  private subAdj(include: T[]): AdjacencyMatrix<E> {
     const includeIdents = include.map((t) => this.nodeIdentity(t))
     const nodeIndices = Array.from(this.nodes.keys())
 
-    return this.adjacency.reduce<Array<Array<E | null>>>((carry, cur, index) => {
+    return this.adjacency.reduce<AdjacencyMatrix<E>>((carry, cur, index) => {
       if (includeIdents.includes(nodeIndices[index])) {
         return [...carry, cur.filter((_, index) => includeIdents.includes(nodeIndices[index]))]
       } else {
@@ -203,7 +203,7 @@ export class DirectedGraph<T, E = true, TI = unknown> extends Graph<T, E, TI> {
   /**
    * Returns all edges in the graph as an array of tuples.
    */
-  getEdges(): Array<[fromNodeIdentity: TI, toNodeIdentity: TI, edge: E]> {
+  getEdges(): Array<[fromNodeIdentity: TI, toNodeIdentity: TI, edge: InternalEdge<E>]> {
     return super.getEdges()
   }
 

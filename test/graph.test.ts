@@ -9,6 +9,10 @@ import hash from 'object-hash'
 describe('Graph', () => {
   it('can be instantiated', () => {
     expect(new Graph<Record<string, any>>()).toBeInstanceOf(Graph)
+    expect(new Graph<Record<string, any>, Record<string, any>>()).toBeInstanceOf(Graph)
+    expect(new Graph<Record<string, any>, Record<string, any>, string, string>()).toBeInstanceOf(
+      Graph,
+    )
   })
 
   it('can add a node', () => {
@@ -201,6 +205,47 @@ describe('Graph', () => {
     expect((graph as any).adjacency[0][1]).toBeTruthy()
     expect((graph as any).adjacency[1][0]).toBeTruthy()
     expect((graph as any).adjacency[1][2]).toBeFalsy()
+
+    graph.removeEdge('1.00', '2.00')
+    graph.removeEdge('2.00', '1.00')
+    expect((graph as any).adjacency[0][1]).toBeFalsy()
+    expect((graph as any).adjacency[1][0]).toBeFalsy()
+    expect((graph as any).adjacency[1][2]).toBeFalsy()
+  })
+
+  it('can deal with multiple edges', () => {
+    interface NodeType {
+      a: number
+      b: string
+    }
+    interface EdgeType {
+      c: string
+    }
+    const graph = new Graph<NodeType, EdgeType>((n: NodeType) => n.a.toFixed(2))
+
+    graph.insert({ a: 1, b: 'b' })
+    graph.insert({ a: 2, b: 'b' })
+    graph.insert({ a: 3, b: 'b' })
+    graph.insert({ a: 4, b: 'b' })
+
+    graph.addEdge('1.00', '2.00', { c: 'c1' })
+    expect((graph as any).adjacency[0][1]).toBeTruthy()
+    expect((graph as any).adjacency[1][0]).toBeFalsy()
+    expect((graph as any).adjacency[1][2]).toBeFalsy()
+
+    graph.addEdge('2.00', '1.00', { c: 'c2' })
+    expect((graph as any).adjacency[0][1]).toBeTruthy()
+    expect((graph as any).adjacency[1][0]).toBeTruthy()
+    expect((graph as any).adjacency[1][2]).toBeFalsy()
+
+    graph.addEdge('2.00', '1.00', { c: 'c3' })
+
+    expect((graph.nodeEdges('1.00') as any).length).toBe(3)
+    expect((graph.nodeEdges('3.00') as any).length).toBe(0)
+    expect((graph.inEdges('2.00') as any).length).toBe(2)
+    expect((graph.outEdges('1.00') as any).length).toBe(2)
+    expect((graph.outEdges('2.00') as any).length).toBe(1)
+    expect((graph.getEdges() as any).length).toBe(3)
 
     graph.removeEdge('1.00', '2.00')
     graph.removeEdge('2.00', '1.00')

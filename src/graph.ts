@@ -92,15 +92,32 @@ import hash from 'object-hash'
  *
  * @typeParam T  `T` is the node type of the graph. Nodes can be anything in all the included examples they are simple objects.
  */
-export class Graph<T, E = true, TI = unknown> {
-  protected nodes: Map<TI, T>
-  protected adjacency: Array<Array<E | null>>
-  protected nodeIdentity: (t: T) => TI
 
-  constructor(nodeIdentity: (node: T) => TI = (node) => hash(node as object) as TI) {
+export type InternalEdge<E> = E | true
+export type AdjacencyValue<E> = null | Array<E | true>
+export type AdjacencyMatrix<E> = Array<Array<AdjacencyValue<E>>>
+
+export class Graph<T, E = true, TI = unknown, EI = unknown> {
+  protected nodes: Map<TI, T>
+  protected adjacency: AdjacencyMatrix<E>
+  protected nodeIdentity: (t: T) => TI
+  protected edgeIdentity: (t: InternalEdge<E>, n1: TI, n2: TI) => EI
+
+  constructor(
+    nodeIdentity: (node: T) => TI = (node) => hash(node as object) as TI,
+    edgeIdentity: (edge: InternalEdge<E>, node1Identity: TI, node2Identit: TI) => EI = (
+      edge,
+      node1Identity,
+      node2Identit,
+    ) => {
+      const h1 = typeof edge === 'object' ? hash(edge as object) : ''
+      return `${String(node1Identity)}-${String(node2Identit)}-${h1}` as EI
+    },
+  ) {
     this.nodes = new Map()
     this.adjacency = []
     this.nodeIdentity = nodeIdentity
+    this.edgeIdentity = edgeIdentity
   }
 
   /**
@@ -122,7 +139,7 @@ export class Graph<T, E = true, TI = unknown> {
 
     this.nodes.set(this.nodeIdentity(node), node)
     this.adjacency.map((adj) => adj.push(null))
-    this.adjacency.push(new Array<E | null>(this.adjacency.length + 1).fill(null))
+    this.adjacency.push(new Array<AdjacencyValue<E>>(this.adjacency.length + 1).fill(null))
 
     return this.nodeIdentity(node)
   }
@@ -159,7 +176,7 @@ export class Graph<T, E = true, TI = unknown> {
 
     if (!isOverwrite) {
       this.adjacency.map((adj) => adj.push(null))
-      this.adjacency.push(new Array<E | null>(this.adjacency.length + 1).fill(null))
+      this.adjacency.push(new Array<AdjacencyValue<E>>(this.adjacency.length + 1).fill(null))
     }
 
     return this.nodeIdentity(node)
@@ -172,7 +189,7 @@ export class Graph<T, E = true, TI = unknown> {
    * @param node1Identity The first node to connect (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `from` node.)
    * @param node2Identity The second node to connect (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `to` node)
    */
-  addEdge(node1Identity: TI, node2Identity: TI, edge?: E): void {
+  addEdge(node1Identity: TI, node2Identity: TI, edge: E | true = true): EI {
     const node1Exists = this.nodes.has(node1Identity)
     const node2Exists = this.nodes.has(node2Identity)
 
@@ -187,7 +204,13 @@ export class Graph<T, E = true, TI = unknown> {
     const node1Index = Array.from(this.nodes.keys()).indexOf(node1Identity)
     const node2Index = Array.from(this.nodes.keys()).indexOf(node2Identity)
 
-    this.adjacency[node1Index][node2Index] = edge ?? (true as unknown as E)
+    if (this.adjacency[node1Index][node2Index] === null) {
+      this.adjacency[node1Index][node2Index] = [edge]
+    } else {
+      this.adjacency[node1Index][node2Index]?.push(edge)
+    }
+
+    return this.edgeIdentity(edge, node1Identity, node2Identity)
   }
 
   /**
@@ -222,18 +245,20 @@ export class Graph<T, E = true, TI = unknown> {
   /**
    * Returns all edges in the graph as an array of tuples.
    */
-  getEdges(): Array<[node1Identity: TI, node2Identity: TI, edge: E]> {
-    const toReturn: Array<[node1Identity: TI, node2Identity: TI, edge: E]> = []
+  getEdges(): Array<[node1Identity: TI, node2Identity: TI, edge: InternalEdge<E>]> {
+    const toReturn: Array<[node1Identity: TI, node2Identity: TI, edge: InternalEdge<E>]> = []
 
-    const nodeValues = Array.from(this.nodes.keys())
+    const nodeKeys = Array.from(this.nodes.keys())
     this.adjacency.forEach((row, rowIndex) => {
-      const node1Identity = nodeValues[rowIndex]
+      const node1Identity = nodeKeys[rowIndex]
       if (node1Identity != null) {
-        row.forEach((edge, colIndex) => {
-          if (edge !== null) {
-            const node2Identity = nodeValues[colIndex]
+        row.forEach((edges, colIndex) => {
+          if (edges !== null) {
+            const node2Identity = nodeKeys[colIndex]
             if (node2Identity != null) {
-              toReturn.push([node1Identity, node2Identity, edge])
+              for (const edge of edges) {
+                toReturn.push([node1Identity, node2Identity, edge])
+              }
             }
           }
         })
@@ -244,13 +269,69 @@ export class Graph<T, E = true, TI = unknown> {
   }
 
   /**
+   * Returns the in edges for a specific node.
+   */
+  inEdges(node1Identity: TI): Array<[node1Identity: TI, node2Identity: TI, edge: InternalEdge<E>]> {
+    const nodeKeys = Array.from(this.nodes.keys())
+    const nodeIndex = nodeKeys.indexOf(node1Identity)
+
+    const toReturn: Array<[node1Identity: TI, node2Identity: TI, edge: InternalEdge<E>]> = []
+
+    this.adjacency[nodeIndex].forEach((edges, colIndex) => {
+      if (edges !== null) {
+        const node2Identity = nodeKeys[colIndex]
+        if (node2Identity != null) {
+          for (const edge of edges) {
+            toReturn.push([node1Identity, node2Identity, edge])
+          }
+        }
+      }
+    })
+
+    return toReturn
+  }
+
+  /**
+   * Returns the out edges for a specific node.
+   */
+  outEdges(
+    node2Identity: TI,
+  ): Array<[node1Identity: TI, node2Identity: TI, edge: InternalEdge<E>]> {
+    const nodeKeys = Array.from(this.nodes.keys())
+    const node2Index = nodeKeys.indexOf(node2Identity)
+
+    const toReturn: Array<[node1Identity: TI, node2Identity: TI, edge: InternalEdge<E>]> = []
+
+    this.adjacency.forEach((row, rowIndex) => {
+      const node1Identity = nodeKeys[rowIndex]
+      const edges = row[node2Index]
+      if (edges !== null) {
+        for (const edge of edges) {
+          toReturn.push([node1Identity, node2Identity, edge])
+        }
+      }
+    })
+
+    return toReturn
+  }
+
+  /**
+   * Returns the edges for a specific node.
+   */
+  nodeEdges(
+    nodeIdentity: TI,
+  ): Array<[node1Identity: TI, node2Identity: TI, edge: InternalEdge<E>]> {
+    return [...this.inEdges(nodeIdentity), ...this.outEdges(nodeIdentity)]
+  }
+
+  /**
    * Deletes an edge between two nodes in the graph.
    * Throws a [[`NodeDoesNotExistsError`]] if either of the nodes do not exist.
    *
    * @param node1Identity The identity of the first node (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `from` node.)
    * @param node2Identity The identity of the second node (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `to` node)
    */
-  removeEdge(node1Identity: TI, node2Identity: TI): void {
+  removeEdge(node1Identity: TI, node2Identity: TI, edgeIdentity?: EI): void {
     const node1Exists = this.nodes.has(node1Identity)
     const node2Exists = this.nodes.has(node2Identity)
 
@@ -265,7 +346,11 @@ export class Graph<T, E = true, TI = unknown> {
     const node1Index = Array.from(this.nodes.keys()).indexOf(node1Identity)
     const node2Index = Array.from(this.nodes.keys()).indexOf(node2Identity)
 
-    this.adjacency[node1Index][node2Index] = null
+    if (edgeIdentity === undefined) {
+      this.adjacency[node1Index][node2Index] = null
+    } else {
+      // TODO:
+    }
   }
 
   /**
