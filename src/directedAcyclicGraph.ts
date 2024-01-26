@@ -23,11 +23,13 @@ export class DirectedAcyclicGraph<T, E = true, TI = unknown, EI = unknown> exten
    * Throws a {@linkcode CycleError} if the graph attempting to be converted contains a cycle.
    * @param graph The source directed graph to convert into a DAG
    */
-  static fromDirectedGraph<T, E>(graph: DirectedGraph<T, E>): DirectedAcyclicGraph<T, E> {
+  static fromDirectedGraph<T, E, TI, EI>(
+    graph: DirectedGraph<T, E, TI, EI>,
+  ): DirectedAcyclicGraph<T, E, TI, EI> {
     if (!graph.isAcyclic()) {
       throw new CycleError("Can't convert that graph to a DAG because it contains a cycle")
     }
-    const toRet = new DirectedAcyclicGraph<T, E>()
+    const toRet = new DirectedAcyclicGraph<T, E, TI, EI>()
 
     toRet.nodes = (graph as any).nodes
     toRet.adjacency = (graph as any).adjacency
@@ -143,7 +145,7 @@ export class DirectedAcyclicGraph<T, E = true, TI = unknown, EI = unknown> exten
    *
    * @param startNodeIdentity The string identity of the node from which the subgraph search should start.
    */
-  getSubGraphStartingFrom(startNodeIdentity: TI): DirectedAcyclicGraph<T, E> {
+  getSubGraphStartingFrom(startNodeIdentity: TI): DirectedAcyclicGraph<T, E, TI, EI> {
     return DirectedAcyclicGraph.fromDirectedGraph(super.getSubGraphStartingFrom(startNodeIdentity))
   }
 

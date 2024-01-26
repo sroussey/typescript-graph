@@ -148,7 +148,7 @@ export class DirectedGraph<T, E = true, TI = unknown, EI = unknown> extends Grap
    *
    * @param startNodeIdentity The string identity of the node from which the subgraph search should start.
    */
-  getSubGraphStartingFrom(startNodeIdentity: TI): DirectedGraph<T, E> {
+  getSubGraphStartingFrom(startNodeIdentity: TI): DirectedGraph<T, E, TI, EI> {
     const nodeIndices = Array.from(this.nodes.keys())
     const initalNode = this.nodes.get(startNodeIdentity)
 
@@ -175,7 +175,7 @@ export class DirectedGraph<T, E = true, TI = unknown, EI = unknown> extends Grap
       return toReturn
     }
 
-    const newGraph = new DirectedGraph<T, E>(this.nodeIdentity, this.edgeIdentity)
+    const newGraph = new DirectedGraph<T, E, TI, EI>(this.nodeIdentity, this.edgeIdentity)
     const nodeList = recur(startNodeIdentity, [initalNode])
     const includeIdents = nodeList.map((t) => this.nodeIdentity(t))
     Array.from(this.nodes.values()).forEach((n) => {
