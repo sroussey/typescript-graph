@@ -9,7 +9,12 @@ import { type InternalEdge } from './graph'
  *
  * @typeParam T `T` is the node type of the graph. Nodes can be anything in all the included examples they are simple objects.
  */
-export class DirectedAcyclicGraph<T, E = true, TI = unknown> extends DirectedGraph<T, E, TI> {
+export class DirectedAcyclicGraph<T, E = true, TI = unknown, EI = unknown> extends DirectedGraph<
+  T,
+  E,
+  TI,
+  EI
+> {
   private _topologicallySortedNodes?: T[]
   protected hasCycle = false
 
@@ -38,7 +43,7 @@ export class DirectedAcyclicGraph<T, E = true, TI = unknown> extends DirectedGra
    * @param fromNodeIdentity The identity string of the node the edge should run from.
    * @param toNodeIdentity The identity string of the node the edge should run to.
    */
-  addEdge(fromNodeIdentity: TI, toNodeIdentity: TI, edge: InternalEdge<E> = true): void {
+  addEdge(fromNodeIdentity: TI, toNodeIdentity: TI, edge: InternalEdge<E> = true): EI {
     if (this.wouldAddingEdgeCreateCycle(fromNodeIdentity, toNodeIdentity)) {
       throw new CycleError(
         `Can't add edge from ${String(fromNodeIdentity)} to ${String(
@@ -49,7 +54,7 @@ export class DirectedAcyclicGraph<T, E = true, TI = unknown> extends DirectedGra
 
     // Invalidate cache of toposorted nodes
     this._topologicallySortedNodes = undefined
-    super.addEdge(fromNodeIdentity, toNodeIdentity, edge, true)
+    return super.addEdge(fromNodeIdentity, toNodeIdentity, edge, true)
   }
 
   /**

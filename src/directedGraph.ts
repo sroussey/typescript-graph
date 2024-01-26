@@ -8,7 +8,7 @@ import { type AdjacencyMatrix, Graph, type InternalEdge } from './graph'
  *
  * @typeParam T `T` is the node type of the graph. Nodes can be anything in all the included examples they are simple objects.
  */
-export class DirectedGraph<T, E = true, TI = unknown> extends Graph<T, E, TI> {
+export class DirectedGraph<T, E = true, TI = unknown, EI = unknown> extends Graph<T, E, TI, EI> {
   /** Caches if the graph contains a cycle. If `undefined` then it is unknown. */
   protected hasCycle: boolean = false
 
@@ -91,14 +91,14 @@ export class DirectedGraph<T, E = true, TI = unknown> extends Graph<T, E, TI> {
     toNodeIdentity: TI,
     edge: InternalEdge<E> = true,
     skipUpdatingCyclicality: boolean = false,
-  ): void {
+  ): EI {
     if (!this.hasCycle && !skipUpdatingCyclicality) {
       this.hasCycle = this.wouldAddingEdgeCreateCycle(fromNodeIdentity, toNodeIdentity)
     } else if (skipUpdatingCyclicality) {
       this.hasCycle = false
     }
 
-    super.addEdge(fromNodeIdentity, toNodeIdentity, edge)
+    return super.addEdge(fromNodeIdentity, toNodeIdentity, edge)
   }
 
   /**
