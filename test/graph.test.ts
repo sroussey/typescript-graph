@@ -242,9 +242,9 @@ describe('Graph', () => {
 
     expect((graph.nodeEdges('1.00') as any).length).toBe(3)
     expect((graph.nodeEdges('3.00') as any).length).toBe(0)
-    expect((graph.inEdges('2.00') as any).length).toBe(2)
-    expect((graph.outEdges('1.00') as any).length).toBe(2)
-    expect((graph.outEdges('2.00') as any).length).toBe(1)
+    expect((graph.outEdges('2.00') as any).length).toBe(2)
+    expect((graph.inEdges('1.00') as any).length).toBe(2)
+    expect((graph.inEdges('2.00') as any).length).toBe(1)
     expect((graph.getEdges() as any).length).toBe(3)
 
     graph.removeEdge('1.00', '2.00')
