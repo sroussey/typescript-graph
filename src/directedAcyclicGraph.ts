@@ -7,15 +7,18 @@ import { type InternalEdge } from './graph'
  *
  * A DirectedAcyclicGraph is builds on a [[`DirectedGraph`]] but enforces acyclicality. You cannot add an edge to a DirectedAcyclicGraph that would create a cycle.
  *
- * @typeParam T `T` is the node type of the graph. Nodes can be anything in all the included examples they are simple objects.
+ * @typeParam Node `Node` is the node type of the graph. Nodes can be anything in all the included examples they are simple objects.
+ * @typeParam Edge `Edge` is the edge type of the graph. Edges can be of any type, but must be truethy and by default they are `true` which is a simple boolean.
+ * @typeParam NodeId `NodeId` is the identity type of the node, by default it is a `unknown`, though most will use `string` or `number`.
+ * @typeParam EdgeId `EdgeId` is the identity type of the edge, by default it is a `unknown`, though most will use `string` or `number`.
  */
-export class DirectedAcyclicGraph<T, E = true, TI = unknown, EI = unknown> extends DirectedGraph<
-  T,
-  E,
-  TI,
-  EI
-> {
-  private _topologicallySortedNodes?: T[]
+export class DirectedAcyclicGraph<
+  Node,
+  Edge = true,
+  NodeId = unknown,
+  EdgeId = unknown,
+> extends DirectedGraph<Node, Edge, NodeId, EdgeId> {
+  private _topologicallySortedNodes?: Node[]
   protected hasCycle = false
 
   /**
@@ -23,13 +26,13 @@ export class DirectedAcyclicGraph<T, E = true, TI = unknown, EI = unknown> exten
    * Throws a {@linkcode CycleError} if the graph attempting to be converted contains a cycle.
    * @param graph The source directed graph to convert into a DAG
    */
-  static fromDirectedGraph<T, E, TI, EI>(
-    graph: DirectedGraph<T, E, TI, EI>,
-  ): DirectedAcyclicGraph<T, E, TI, EI> {
+  static fromDirectedGraph<Node, Edge, NodeId, EdgeId>(
+    graph: DirectedGraph<Node, Edge, NodeId, EdgeId>,
+  ): DirectedAcyclicGraph<Node, Edge, NodeId, EdgeId> {
     if (!graph.isAcyclic()) {
       throw new CycleError("Can't convert that graph to a DAG because it contains a cycle")
     }
-    const toRet = new DirectedAcyclicGraph<T, E, TI, EI>()
+    const toRet = new DirectedAcyclicGraph<Node, Edge, NodeId, EdgeId>()
 
     toRet.nodes = (graph as any).nodes
     toRet.adjacency = (graph as any).adjacency
@@ -45,7 +48,11 @@ export class DirectedAcyclicGraph<T, E = true, TI = unknown, EI = unknown> exten
    * @param fromNodeIdentity The identity string of the node the edge should run from.
    * @param toNodeIdentity The identity string of the node the edge should run to.
    */
-  addEdge(fromNodeIdentity: TI, toNodeIdentity: TI, edge: InternalEdge<E> = true): EI {
+  addEdge(
+    fromNodeIdentity: NodeId,
+    toNodeIdentity: NodeId,
+    edge: InternalEdge<Edge> = true,
+  ): EdgeId {
     if (this.wouldAddingEdgeCreateCycle(fromNodeIdentity, toNodeIdentity)) {
       throw new CycleError(
         `Can't add edge from ${String(fromNodeIdentity)} to ${String(
@@ -65,7 +72,7 @@ export class DirectedAcyclicGraph<T, E = true, TI = unknown, EI = unknown> exten
    *
    * @param node The node to insert
    */
-  insert(node: T): TI {
+  insert(node: Node): NodeId {
     if (this._topologicallySortedNodes !== undefined) {
       this._topologicallySortedNodes = [node, ...this._topologicallySortedNodes]
     }
@@ -74,14 +81,14 @@ export class DirectedAcyclicGraph<T, E = true, TI = unknown, EI = unknown> exten
   }
 
   /**
-   * Topologically sort the nodes using Kahn's algorithim. Uses a cache which means that repeated calls should be O(1) after the first call.
+   * Topologically sort the nodes using Kahn's algorithm. Uses a cache which means that repeated calls should be O(1) after the first call.
    * Non-cached calls are potentially expensive, Kahn's algorithim is O(|EdgeCount| + |NodeCount|).
    * There may be more than one valid topological sort order for a single graph,
    * so just because two graphs are the same does not mean that order of the resultant arrays will be.
    *
    * @returns An array of nodes sorted by the topological order.
    */
-  topologicallySortedNodes(): T[] {
+  topologicallySortedNodes(): Node[] {
     if (this._topologicallySortedNodes !== undefined) {
       return this._topologicallySortedNodes
     }
@@ -101,7 +108,7 @@ export class DirectedAcyclicGraph<T, E = true, TI = unknown, EI = unknown> exten
       return arrayOfNodes
     }
 
-    const toReturn: T[] = []
+    const toReturn: Node[] = []
 
     while (toSearch.length > 0) {
       const n = toSearch.pop()
@@ -145,7 +152,9 @@ export class DirectedAcyclicGraph<T, E = true, TI = unknown, EI = unknown> exten
    *
    * @param startNodeIdentity The string identity of the node from which the subgraph search should start.
    */
-  getSubGraphStartingFrom(startNodeIdentity: TI): DirectedAcyclicGraph<T, E, TI, EI> {
+  getSubGraphStartingFrom(
+    startNodeIdentity: NodeId,
+  ): DirectedAcyclicGraph<Node, Edge, NodeId, EdgeId> {
     return DirectedAcyclicGraph.fromDirectedGraph(super.getSubGraphStartingFrom(startNodeIdentity))
   }
 
@@ -156,7 +165,7 @@ export class DirectedAcyclicGraph<T, E = true, TI = unknown, EI = unknown> exten
    * @param fromNodeIdentity The identity of the from node
    * @param toNodeIdentity The identity of the to node
    */
-  removeEdge(fromNodeIdentity: TI, toNodeIdentity: TI): void {
+  removeEdge(fromNodeIdentity: NodeId, toNodeIdentity: NodeId): void {
     super.removeEdge(fromNodeIdentity, toNodeIdentity)
 
     // Invalidate the topologically sorted nodes cache
@@ -169,7 +178,7 @@ export class DirectedAcyclicGraph<T, E = true, TI = unknown, EI = unknown> exten
    *
    * @param nodeIdentity The identity of the node to be deleted.
    */
-  remove(nodeIdentity: TI): void {
+  remove(nodeIdentity: NodeId): void {
     super.remove(nodeIdentity)
 
     // Invalidate the topologically sorted nodes cache

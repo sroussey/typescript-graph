@@ -13,11 +13,11 @@ The most useful functionality is the ability to compute cyclicality and topologi
 ## Installing & Basic Usage
 
 ```bash
-npm install 'typescript-graph'
+npm install '@sroussey/typescript-graph'
 ```
 
 ```typescript
-import { Graph } from 'typescript-graph'
+import { Graph } from '@sroussey/typescript-graph'
 
 // Identify the node type to be used with the graph
 type NodeType = { name: string, count: number, metadata: { [string: string]: string } }
@@ -43,7 +43,7 @@ const node: NodeType = graph.getNode(node2);
 ### Creating a directed graph and detecting cycles.
 
 ```typescript
-import { DirectedGraph, DirectedAcyclicGraph } from 'typescript-graph'
+import { DirectedGraph, DirectedAcyclicGraph } from '@sroussey/typescript-graph'
 
 // Create the graph
 type NodeType = { name: string, count: number }
@@ -82,7 +82,7 @@ DirectedAcyclicGraph.fromDirectedGraph(graph) // now throws an exception because
 ### Creating a directed acyclic graph and getting the nodes in topological order
 
 ```typescript
-import { DirectedAcyclicGraph } from 'typescript-graph'
+import { DirectedAcyclicGraph } from '@sroussey/typescript-graph'
 
 // Create the graph
 type NodeType = { name: string }
@@ -111,3 +111,4 @@ MIT License
 
 ## Author
 Max Walker (max@maxwalker.me)
+Steven Roussey (sroussey@gmail.com)
