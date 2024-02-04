@@ -96,23 +96,22 @@ import hash from 'object-hash'
  * @typeParam EdgeId `EdgeId` is the identity type of the edge, by default it is a `unknown`, though most will use `string` or `number`.
  */
 
-export type InternalEdge<Edge> = Edge | true
-export type AdjacencyValue<Edge> = null | Array<Edge | true>
+export type AdjacencyValue<Edge> = null | Array<Edge>
 export type AdjacencyMatrix<Edge> = Array<Array<AdjacencyValue<Edge>>>
 
 export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
   protected nodes: Map<NodeId, Node>
   protected adjacency: AdjacencyMatrix<Edge>
   protected nodeIdentity: (t: Node) => NodeId
-  protected edgeIdentity: (t: InternalEdge<Edge>, n1: NodeId, n2: NodeId) => EdgeId
+  protected edgeIdentity: (t: Edge, n1: NodeId, n2: NodeId) => EdgeId
 
   constructor(
     nodeIdentity: (node: Node) => NodeId = (node) => hash(node as object) as NodeId,
-    edgeIdentity: (
-      edge: InternalEdge<Edge>,
-      node1Identity: NodeId,
-      node2Identit: NodeId,
-    ) => EdgeId = (edge, node1Identity, node2Identit) => {
+    edgeIdentity: (edge: Edge, node1Identity: NodeId, node2Identit: NodeId) => EdgeId = (
+      edge,
+      node1Identity,
+      node2Identit,
+    ) => {
       const h1 = typeof edge === 'object' ? hash(edge as object) : ''
       return `${String(node1Identity)}-${String(node2Identit)}-${h1}` as EdgeId
     },
@@ -192,7 +191,10 @@ export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
    * @param node1Identity The first node to connect (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `from` node.)
    * @param node2Identity The second node to connect (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `to` node)
    */
-  addEdge(node1Identity: NodeId, node2Identity: NodeId, edge: Edge | true = true): EdgeId {
+  addEdge(node1Identity: NodeId, node2Identity: NodeId, edge?: Edge): EdgeId {
+    if (edge === undefined) {
+      edge = true as Edge
+    }
     const node1Exists = this.nodes.has(node1Identity)
     const node2Exists = this.nodes.has(node2Identity)
 
@@ -248,10 +250,8 @@ export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
   /**
    * Returns all edges in the graph as an array of tuples.
    */
-  getEdges(): Array<[node1Identity: NodeId, node2Identity: NodeId, edge: InternalEdge<Edge>]> {
-    const toReturn: Array<
-      [node1Identity: NodeId, node2Identity: NodeId, edge: InternalEdge<Edge>]
-    > = []
+  getEdges(): Array<[node1Identity: NodeId, node2Identity: NodeId, edge: Edge]> {
+    const toReturn: Array<[node1Identity: NodeId, node2Identity: NodeId, edge: Edge]> = []
 
     const nodeKeys = Array.from(this.nodes.keys())
     this.adjacency.forEach((row, rowIndex) => {
@@ -278,13 +278,11 @@ export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
    */
   outEdges(
     node1Identity: NodeId,
-  ): Array<[node1Identity: NodeId, node2Identity: NodeId, edge: InternalEdge<Edge>]> {
+  ): Array<[node1Identity: NodeId, node2Identity: NodeId, edge: Edge]> {
     const nodeKeys = Array.from(this.nodes.keys())
     const nodeIndex = nodeKeys.indexOf(node1Identity)
 
-    const toReturn: Array<
-      [node1Identity: NodeId, node2Identity: NodeId, edge: InternalEdge<Edge>]
-    > = []
+    const toReturn: Array<[node1Identity: NodeId, node2Identity: NodeId, edge: Edge]> = []
 
     this.adjacency[nodeIndex].forEach((edges, colIndex) => {
       if (edges !== null) {
@@ -305,13 +303,11 @@ export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
    */
   inEdges(
     node2Identity: NodeId,
-  ): Array<[node1Identity: NodeId, node2Identity: NodeId, edge: InternalEdge<Edge>]> {
+  ): Array<[node1Identity: NodeId, node2Identity: NodeId, edge: Edge]> {
     const nodeKeys = Array.from(this.nodes.keys())
     const node2Index = nodeKeys.indexOf(node2Identity)
 
-    const toReturn: Array<
-      [node1Identity: NodeId, node2Identity: NodeId, edge: InternalEdge<Edge>]
-    > = []
+    const toReturn: Array<[node1Identity: NodeId, node2Identity: NodeId, edge: Edge]> = []
 
     this.adjacency.forEach((row, rowIndex) => {
       const node1Identity = nodeKeys[rowIndex]
@@ -331,7 +327,7 @@ export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
    */
   nodeEdges(
     nodeIdentity: NodeId,
-  ): Array<[node1Identity: NodeId, node2Identity: NodeId, edge: InternalEdge<Edge>]> {
+  ): Array<[node1Identity: NodeId, node2Identity: NodeId, edge: Edge]> {
     return [...this.outEdges(nodeIdentity), ...this.inEdges(nodeIdentity)]
   }
 
