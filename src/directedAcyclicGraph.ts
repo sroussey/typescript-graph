@@ -1,6 +1,5 @@
 import { DirectedGraph } from './directedGraph'
 import { CycleError } from './errors'
-import { type InternalEdge } from './graph'
 
 /**
  * # DirectedAcyclicGraph
@@ -48,11 +47,10 @@ export class DirectedAcyclicGraph<
    * @param fromNodeIdentity The identity string of the node the edge should run from.
    * @param toNodeIdentity The identity string of the node the edge should run to.
    */
-  addEdge(
-    fromNodeIdentity: NodeId,
-    toNodeIdentity: NodeId,
-    edge: InternalEdge<Edge> = true,
-  ): EdgeId {
+  addEdge(fromNodeIdentity: NodeId, toNodeIdentity: NodeId, edge?: Edge): EdgeId {
+    if (edge === undefined) {
+      edge = true as Edge
+    }
     if (this.wouldAddingEdgeCreateCycle(fromNodeIdentity, toNodeIdentity)) {
       throw new CycleError(
         `Can't add edge from ${String(fromNodeIdentity)} to ${String(

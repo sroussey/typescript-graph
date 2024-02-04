@@ -1,5 +1,5 @@
 import { NodeDoesntExistError } from './errors'
-import { type AdjacencyMatrix, Graph, type InternalEdge } from './graph'
+import { type AdjacencyMatrix, Graph } from './graph'
 
 /**
  * # DirectedGraph
@@ -11,11 +11,11 @@ import { type AdjacencyMatrix, Graph, type InternalEdge } from './graph'
  * @typeParam NodeId `NodeId` is the identity type of the node, by default it is a `unknown`, though most will use `string` or `number`.
  * @typeParam EdgeId `EdgeId` is the identity type of the edge, by default it is a `unknown`, though most will use `string` or `number`.
  */
-export class DirectedGraph<Node, E = true, NodeId = unknown, EI = unknown> extends Graph<
+export class DirectedGraph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> extends Graph<
   Node,
-  E,
+  Edge,
   NodeId,
-  EI
+  EdgeId
 > {
   /** Caches if the graph contains a cycle. If `undefined` then it is unknown. */
   protected hasCycle = false
@@ -97,9 +97,12 @@ export class DirectedGraph<Node, E = true, NodeId = unknown, EI = unknown> exten
   addEdge(
     fromNodeIdentity: NodeId,
     toNodeIdentity: NodeId,
-    edge: InternalEdge<E> = true,
+    edge?: Edge,
     skipUpdatingCyclicality: boolean = false,
-  ): EI {
+  ): EdgeId {
+    if (edge === undefined) {
+      edge = true as Edge
+    }
     if (!this.hasCycle && !skipUpdatingCyclicality) {
       this.hasCycle = this.wouldAddingEdgeCreateCycle(fromNodeIdentity, toNodeIdentity)
     } else if (skipUpdatingCyclicality) {
@@ -156,7 +159,7 @@ export class DirectedGraph<Node, E = true, NodeId = unknown, EI = unknown> exten
    *
    * @param startNodeIdentity The string identity of the node from which the subgraph search should start.
    */
-  getSubGraphStartingFrom(startNodeIdentity: NodeId): DirectedGraph<Node, E, NodeId, EI> {
+  getSubGraphStartingFrom(startNodeIdentity: NodeId): DirectedGraph<Node, Edge, NodeId, EdgeId> {
     const nodeIndices = Array.from(this.nodes.keys())
     const initalNode = this.nodes.get(startNodeIdentity)
 
@@ -183,7 +186,10 @@ export class DirectedGraph<Node, E = true, NodeId = unknown, EI = unknown> exten
       return toReturn
     }
 
-    const newGraph = new DirectedGraph<Node, E, NodeId, EI>(this.nodeIdentity, this.edgeIdentity)
+    const newGraph = new DirectedGraph<Node, Edge, NodeId, EdgeId>(
+      this.nodeIdentity,
+      this.edgeIdentity,
+    )
     const nodeList = recur(startNodeIdentity, [initalNode])
     const includeIdents = nodeList.map((t) => this.nodeIdentity(t))
     Array.from(this.nodes.values()).forEach((n) => {
@@ -195,11 +201,11 @@ export class DirectedGraph<Node, E = true, NodeId = unknown, EI = unknown> exten
     return newGraph
   }
 
-  private subAdj(include: Node[]): AdjacencyMatrix<E> {
+  private subAdj(include: Node[]): AdjacencyMatrix<Edge> {
     const includeIdents = include.map((t) => this.nodeIdentity(t))
     const nodeIndices = Array.from(this.nodes.keys())
 
-    return this.adjacency.reduce<AdjacencyMatrix<E>>((carry, cur, index) => {
+    return this.adjacency.reduce<AdjacencyMatrix<Edge>>((carry, cur, index) => {
       if (includeIdents.includes(nodeIndices[index])) {
         return [...carry, cur.filter((_, index) => includeIdents.includes(nodeIndices[index]))]
       } else {
@@ -211,7 +217,7 @@ export class DirectedGraph<Node, E = true, NodeId = unknown, EI = unknown> exten
   /**
    * Returns all edges in the graph as an array of tuples.
    */
-  getEdges(): Array<[fromNodeIdentity: NodeId, toNodeIdentity: NodeId, edge: InternalEdge<E>]> {
+  getEdges(): Array<[fromNodeIdentity: NodeId, toNodeIdentity: NodeId, edge: Edge]> {
     return super.getEdges()
   }
 
