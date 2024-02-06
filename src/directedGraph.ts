@@ -18,7 +18,7 @@ export class DirectedGraph<Node, Edge = true, NodeId = unknown, EdgeId = unknown
   EdgeId
 > {
   /** Caches if the graph contains a cycle. If `undefined` then it is unknown. */
-  protected hasCycle = false
+  protected hasCycle: boolean | undefined = false
 
   /**
    * Returns `true` if there are no cycles in the graph.
@@ -89,27 +89,28 @@ export class DirectedGraph<Node, Edge = true, NodeId = unknown, EdgeId = unknown
   /**
    * Add a directed edge to the graph.
    *
-   * @param fromNodeIdentity The identity string of the node the edge should run from.
-   * @param toNodeIdentity The identity string of the node the edge should run to.
+   * @param sourceNodeIdentity The identity string of the node the edge should run from.
+   * @param targetNodeIdentity The identity string of the node the edge should run to.
+   * @param edge The edge to add to the graph. If not provided it defaults to `true`.
    * @param skipUpdatingCyclicality This boolean indicates if the cache of the cyclicality of the graph should be updated.
-   * If `false` is passed the cached will be invalidated because we can not assure that a cycle has not been created.
+   * If `false` is passed the cycle cache will be invalidated because we can not assure that a cycle has not been created.
    */
   addEdge(
-    fromNodeIdentity: NodeId,
-    toNodeIdentity: NodeId,
+    sourceNodeIdentity: NodeId,
+    targetNodeIdentity: NodeId,
     edge?: Edge,
     skipUpdatingCyclicality: boolean = false,
   ): EdgeId {
     if (edge === undefined) {
       edge = true as Edge
     }
-    if (!this.hasCycle && !skipUpdatingCyclicality) {
-      this.hasCycle = this.wouldAddingEdgeCreateCycle(fromNodeIdentity, toNodeIdentity)
+    if (this.hasCycle === false && !skipUpdatingCyclicality) {
+      this.hasCycle = this.wouldAddingEdgeCreateCycle(sourceNodeIdentity, targetNodeIdentity)
     } else if (skipUpdatingCyclicality) {
-      this.hasCycle = false
+      this.hasCycle = undefined
     }
 
-    return super.addEdge(fromNodeIdentity, toNodeIdentity, edge)
+    return super.addEdge(sourceNodeIdentity, targetNodeIdentity, edge)
   }
 
   /**
@@ -140,16 +141,16 @@ export class DirectedGraph<Node, Edge = true, NodeId = unknown, EdgeId = unknown
 
   /**
    * Checks if adding the specified edge would create a cycle.
-   * Returns true in O(1) if the graph already contains a known cycle, or if `fromNodeIdentity` and `toNodeIdentity` are the same.
+   * Returns true in O(1) if the graph already contains a known cycle, or if `sourceNodeIdentity` and `targetNodeIdentity` are the same.
    *
-   * @param fromNodeIdentity The string identity of the node the edge is from.
-   * @param toNodeIdentity The string identity of the node the edge is to.
+   * @param sourceNodeIdentity The string identity of the node the edge is from.
+   * @param targetNodeIdentity The string identity of the node the edge is to.
    */
-  wouldAddingEdgeCreateCycle(fromNodeIdentity: NodeId, toNodeIdentity: NodeId): boolean {
+  wouldAddingEdgeCreateCycle(sourceNodeIdentity: NodeId, targetNodeIdentity: NodeId): boolean {
     return (
       this.hasCycle ||
-      fromNodeIdentity === toNodeIdentity ||
-      this.canReachFrom(toNodeIdentity, fromNodeIdentity)
+      sourceNodeIdentity === targetNodeIdentity ||
+      this.canReachFrom(targetNodeIdentity, sourceNodeIdentity)
     )
   }
 
@@ -217,7 +218,7 @@ export class DirectedGraph<Node, Edge = true, NodeId = unknown, EdgeId = unknown
   /**
    * Returns all edges in the graph as an array of tuples.
    */
-  getEdges(): Array<[fromNodeIdentity: NodeId, toNodeIdentity: NodeId, edge: Edge]> {
+  getEdges(): Array<[sourceNodeIdentity: NodeId, targetNodeIdentity: NodeId, edge: Edge]> {
     return super.getEdges()
   }
 
@@ -225,14 +226,15 @@ export class DirectedGraph<Node, Edge = true, NodeId = unknown, EdgeId = unknown
    * Deletes an edge between two nodes in the graph.
    * Throws a [[`NodeDoesNotExistsError`]] if either of the nodes do not exist.
    *
-   * @param fromNodeIdentity The identity of the from node
-   * @param toNodeIdentity The identity of the to node
+   * @param sourceNodeIdentity The identity of the source node
+   * @param targetNodeIdentity The identity of the target node
+   * @param edgeIdentity The identity of the edge to be deleted. If not provided, all edges between the two nodes will be deleted.
    */
-  removeEdge(fromNodeIdentity: NodeId, toNodeIdentity: NodeId): void {
-    super.removeEdge(fromNodeIdentity, toNodeIdentity)
+  removeEdge(sourceNodeIdentity: NodeId, targetNodeIdentity: NodeId, edgeIdentity?: EdgeId): void {
+    super.removeEdge(sourceNodeIdentity, targetNodeIdentity, edgeIdentity)
 
     // Invalidate the cycle cache as the graph structure has changed
-    this.hasCycle = false
+    this.hasCycle = undefined
   }
 
   /**
@@ -245,6 +247,16 @@ export class DirectedGraph<Node, Edge = true, NodeId = unknown, EdgeId = unknown
     super.remove(nodeIdentity)
 
     // Invalidate the cycle cache as the graph structure has changed
-    this.hasCycle = false
+    this.hasCycle = undefined
+  }
+
+  /**
+   * Add edges
+   * @param edges An array of tuples, each tuple containing the identity of the source node, the identity of the target node, and the edge to add.
+   */
+  addEdges(
+    edges: Array<[sourceNodeIdentity: NodeId, targetNodeIdentity: NodeId, edge?: Edge | undefined]>,
+  ): EdgeId[] {
+    return super.addEdges(edges)
   }
 }
