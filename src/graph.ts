@@ -188,8 +188,9 @@ export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
    * Create an edge between two nodes in the graph.
    * Throws a [[`NodeDoesNotExistsError`]] if no either of the nodes you are attempting to connect do not exist.
    *
-   * @param node1Identity The first node to connect (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `from` node.)
-   * @param node2Identity The second node to connect (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `to` node)
+   * @param node1Identity The first node to connect (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `source` node.)
+   * @param node2Identity The second node to connect (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `target` node)
+   * @param edge The edge to be added. By default this is `true` but it can be any type.
    */
   addEdge(node1Identity: NodeId, node2Identity: NodeId, edge?: Edge): EdgeId {
     if (edge === undefined) {
@@ -337,6 +338,7 @@ export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
    *
    * @param node1Identity The identity of the first node (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `from` node.)
    * @param node2Identity The identity of the second node (in [[`DirectedGraph`]]s and [[`DirectedAcyclicGraph`]]s this is the `to` node)
+   * @param edgeIdentity The identity of the edge to be deleted. If not provided, all edges between the two nodes will be deleted.
    */
   removeEdge(node1Identity: NodeId, node2Identity: NodeId, edgeIdentity?: EdgeId): void {
     const node1Exists = this.nodes.has(node1Identity)
@@ -356,7 +358,22 @@ export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
     if (edgeIdentity === undefined) {
       this.adjacency[node1Index][node2Index] = null
     } else {
-      // TODO:
+      // Remove the corresponding column from the adjacency matrix
+      // this is not an optimized way to do this but we have edge as an opaque type
+      for (const row of this.adjacency) {
+        for (const edgelist of row) {
+          if (edgelist !== null) {
+            for (let edgeIndex = 0; edgeIndex < edgelist.length; edgeIndex++) {
+              if (
+                this.edgeIdentity(edgelist[edgeIndex], node1Identity, node2Identity) ===
+                edgeIdentity
+              ) {
+                edgelist.splice(edgeIndex, 1)
+              }
+            }
+          }
+        }
+      }
     }
   }
 
@@ -382,5 +399,38 @@ export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
 
     // Remove the corresponding column from the adjacency matrix
     this.adjacency.forEach((row) => row.splice(nodeIndex, 1))
+  }
+
+  /**
+   * @alias remove
+   */
+  removeNode(nodeIdentity: NodeId): void {
+    return this.remove(nodeIdentity)
+  }
+
+  /**
+   * @alias insert
+   */
+  addNode(node: Node): NodeId {
+    return this.insert(node)
+  }
+
+  /**
+   * Add nodes in bulk
+   */
+  addNodes(nodes: Node[]): NodeId[] {
+    return nodes.map((node) => this.insert(node))
+  }
+
+  /**
+   * Add edges
+   * @param edges An array of tuples, each tuple containing the identity of the source node, the identity of the target node, and the edge to add.
+   */
+  addEdges(
+    edges: Array<[node1Identity: NodeId, node2Identity: NodeId, edge?: Edge | undefined]>,
+  ): EdgeId[] {
+    return edges.map(([node1Identity, node2Identity, edge]) =>
+      this.addEdge(node1Identity, node2Identity, edge),
+    )
   }
 }

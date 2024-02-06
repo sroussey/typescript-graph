@@ -18,7 +18,6 @@ export class DirectedAcyclicGraph<
   EdgeId = unknown,
 > extends DirectedGraph<Node, Edge, NodeId, EdgeId> {
   private _topologicallySortedNodes?: Node[]
-  protected hasCycle = false
 
   /**
    * Converts an existing directed graph into a directed acyclic graph.
@@ -44,24 +43,25 @@ export class DirectedAcyclicGraph<
    * Thows a [[`CycleError`]] if adding the requested edge would create a cycle.
    * Adding an edge invalidates the cache of topologically sorted nodes, rather than updating it.
    *
-   * @param fromNodeIdentity The identity string of the node the edge should run from.
-   * @param toNodeIdentity The identity string of the node the edge should run to.
+   * @param sourceNodeIdentity The identity string of the node the edge should run from.
+   * @param targetNodeIdentity The identity string of the node the edge should run to.
+   * @param edge The edge to add to the graph. If not provided it defaults to `true`.
    */
-  addEdge(fromNodeIdentity: NodeId, toNodeIdentity: NodeId, edge?: Edge): EdgeId {
+  addEdge(sourceNodeIdentity: NodeId, targetNodeIdentity: NodeId, edge?: Edge): EdgeId {
     if (edge === undefined) {
       edge = true as Edge
     }
-    if (this.wouldAddingEdgeCreateCycle(fromNodeIdentity, toNodeIdentity)) {
+    if (this.wouldAddingEdgeCreateCycle(sourceNodeIdentity, targetNodeIdentity)) {
       throw new CycleError(
-        `Can't add edge from ${String(fromNodeIdentity)} to ${String(
-          toNodeIdentity,
+        `Can't add edge from ${String(sourceNodeIdentity)} to ${String(
+          targetNodeIdentity,
         )} it would create a cycle`,
       )
     }
 
     // Invalidate cache of toposorted nodes
     this._topologicallySortedNodes = undefined
-    return super.addEdge(fromNodeIdentity, toNodeIdentity, edge, true)
+    return super.addEdge(sourceNodeIdentity, targetNodeIdentity, edge, true)
   }
 
   /**
@@ -160,11 +160,12 @@ export class DirectedAcyclicGraph<
    * Deletes an edge between two nodes in the graph.
    * Throws a [[`NodeDoesNotExistsError`]] if either of the nodes do not exist.
    *
-   * @param fromNodeIdentity The identity of the from node
-   * @param toNodeIdentity The identity of the to node
+   * @param sourceNodeIdentity The identity of the source node
+   * @param targetNodeIdentity The identity of the target node
+   * @param edgeIdentity The identity of the edge to be deleted. If not provided, all edges between the two nodes will be deleted.
    */
-  removeEdge(fromNodeIdentity: NodeId, toNodeIdentity: NodeId): void {
-    super.removeEdge(fromNodeIdentity, toNodeIdentity)
+  removeEdge(sourceNodeIdentity: NodeId, targetNodeIdentity: NodeId, edgeIdentity: EdgeId): void {
+    super.removeEdge(sourceNodeIdentity, targetNodeIdentity, edgeIdentity)
 
     // Invalidate the topologically sorted nodes cache
     this._topologicallySortedNodes = undefined
