@@ -164,7 +164,7 @@ export class DirectedAcyclicGraph<
    * @param targetNodeIdentity The identity of the target node
    * @param edgeIdentity The identity of the edge to be deleted. If not provided, all edges between the two nodes will be deleted.
    */
-  removeEdge(sourceNodeIdentity: NodeId, targetNodeIdentity: NodeId, edgeIdentity: EdgeId): void {
+  removeEdge(sourceNodeIdentity: NodeId, targetNodeIdentity: NodeId, edgeIdentity?: EdgeId): void {
     super.removeEdge(sourceNodeIdentity, targetNodeIdentity, edgeIdentity)
 
     // Invalidate the topologically sorted nodes cache
