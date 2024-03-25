@@ -1,3 +1,4 @@
+import EventEmitter from 'eventemitter3'
 import { NodeAlreadyExistsError, NodeDoesntExistError } from './errors'
 
 /**
@@ -99,6 +100,8 @@ import hash from 'object-hash'
 export type AdjacencyValue<Edge> = null | Array<Edge>
 export type AdjacencyMatrix<Edge> = Array<Array<AdjacencyValue<Edge>>>
 
+export type GraphEvents = "node-added" | "node-removed" | "node-replaced" | "edge-added" | "edge-removed" | "edge-replaced";
+
 export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
   protected nodes: Map<NodeId, Node>
   protected adjacency: AdjacencyMatrix<Edge>
@@ -122,6 +125,17 @@ export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
     this.edgeIdentity = edgeIdentity
   }
 
+  events = new EventEmitter<GraphEvents>();
+  on(name: GraphEvents, fn: (...args: any[]) => void) {
+    this.events.on.call(this.events, name, fn);
+  }
+  off(name: GraphEvents, fn: (...args: any[]) => void) {
+    this.events.off.call(this.events, name, fn);
+  }
+  emit(name: GraphEvents, ...args: any[]) {
+    this.events.emit.call(this.events, name, ...args);
+  }
+
   /**
    * Add a node to the graph if it doesn't already exist. If it does, throw a [[`NodeAlreadyExistsError`]].
    *
@@ -129,21 +143,24 @@ export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
    * @returns A `string` that is the identity of the newly inserted node. This is created by applying the [[constructor | `nodeIdentity`]].
    */
   insert(node: Node): NodeId {
-    const isOverwrite = this.nodes.has(this.nodeIdentity(node))
+    const id = this.nodeIdentity(node);
+    const isOverwrite = this.nodes.has(id)
 
     if (isOverwrite) {
       throw new NodeAlreadyExistsError(
         node,
-        this.nodes.get(this.nodeIdentity(node)),
-        this.nodeIdentity(node),
+        this.nodes.get(id),
+        id,
       )
     }
 
-    this.nodes.set(this.nodeIdentity(node), node)
+    this.nodes.set(id, node)
     this.adjacency.map((adj) => adj.push(null))
     this.adjacency.push(new Array<AdjacencyValue<Edge>>(this.adjacency.length + 1).fill(null))
 
-    return this.nodeIdentity(node)
+    this.emit("node-added", id)
+
+    return id
   }
 
   /**
@@ -155,13 +172,16 @@ export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
    * @param node The new node that is replacing the old one.
    */
   replace(node: Node): void {
-    const isOverwrite = this.nodes.has(this.nodeIdentity(node))
+    const id = this.nodeIdentity(node)
+    const isOverwrite = this.nodes.has(id)
 
     if (!isOverwrite) {
-      throw new NodeDoesntExistError(this.nodeIdentity(node))
+      throw new NodeDoesntExistError(id)
     }
 
-    this.nodes.set(this.nodeIdentity(node), node)
+    this.nodes.set(id, node)
+
+    this.emit("node-replaced", id)
   }
 
   /**
@@ -172,16 +192,20 @@ export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
    * @returns The identity string of the node inserted or updated.
    */
   upsert(node: Node): NodeId {
-    const isOverwrite = this.nodes.has(this.nodeIdentity(node))
+    const id = this.nodeIdentity(node)
+    const isOverwrite = this.nodes.has(id)
 
-    this.nodes.set(this.nodeIdentity(node), node)
+    this.nodes.set(id, node)
 
     if (!isOverwrite) {
       this.adjacency.map((adj) => adj.push(null))
       this.adjacency.push(new Array<AdjacencyValue<Edge>>(this.adjacency.length + 1).fill(null))
+      this.emit("node-added", id)
+    } else {
+      this.emit("node-replaced", id)
     }
 
-    return this.nodeIdentity(node)
+    return id
   }
 
   /**
@@ -213,10 +237,15 @@ export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
     if (this.adjacency[node1Index][node2Index] === null) {
       this.adjacency[node1Index][node2Index] = [edge]
     } else {
-      this.adjacency[node1Index][node2Index]?.push(edge)
+      if (!this.adjacency[node1Index][node2Index]!.includes(edge)) {
+        this.adjacency[node1Index][node2Index]!.push(edge)
+      }
     }
 
-    return this.edgeIdentity(edge, node1Identity, node2Identity)
+    const id = this.edgeIdentity(edge, node1Identity, node2Identity)
+    this.emit("edge-added", id)
+
+    return id
   }
 
   /**
@@ -375,6 +404,7 @@ export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
         }
       }
     }
+    this.emit("edge-removed", edgeIdentity)
   }
 
   /**
@@ -399,6 +429,8 @@ export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
 
     // Remove the corresponding column from the adjacency matrix
     this.adjacency.forEach((row) => row.splice(nodeIndex, 1))
+
+    this.emit("node-removed", nodeIdentity)
   }
 
   /**
@@ -427,10 +459,10 @@ export class Graph<Node, Edge = true, NodeId = unknown, EdgeId = unknown> {
    * @param edges An array of tuples, each tuple containing the identity of the source node, the identity of the target node, and the edge to add.
    */
   addEdges(
-    edges: Array<[node1Identity: NodeId, node2Identity: NodeId, edge?: Edge | undefined]>,
+    edges:Array<[node1Identity: NodeId, node2Identity: NodeId, edge?: Edge | undefined]>,
   ): EdgeId[] {
-    return edges.map(([node1Identity, node2Identity, edge]) =>
-      this.addEdge(node1Identity, node2Identity, edge),
-    )
+      return edges.map(([node1Identity, node2Identity, edge]) =>
+        this.addEdge(node1Identity, node2Identity, edge)
+      )
   }
 }

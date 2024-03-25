@@ -116,7 +116,7 @@ export class DirectedGraph<Node, Edge = true, NodeId = unknown, EdgeId = unknown
   /**
    * Depth first search to see if one node is reachable from another following the directed edges.
    *
-   * __Caveat:__ This will return false if `startNode` and `endNode` are the same node and the is not a cycle or a loop edge connecting them.
+   * __Caveat:__ This will return false if `startNode` and `endNode` are the same node and there is not a cycle or a loop edge connecting them.
    *
    * @param startNode The string identity of the node to start at.
    * @param endNode The string identity of the node we are attempting to reach.
